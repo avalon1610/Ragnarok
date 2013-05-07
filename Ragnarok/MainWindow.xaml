@@ -1,0 +1,69 @@
+﻿<Controls:MetroWindow x:Class="Ragnarok.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        Title="MainWindow" Height="350" Width="525" WindowStartupLocation="CenterScreen"> <!--ShowTitleBar="False">-->
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colours.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.AnimatedTabControl.xaml" />
+                <!--<ResourceDictionary>
+                    <Style x:Key="SystemButtonStyle" TargetType="{x:Type Controls:WindowCommands}">
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="Red" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ResourceDictionary>-->
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
+
+    </Window.Resources>
+    <Controls:MetroWindow.WindowCommands>
+        <Controls:WindowCommands>
+            <Button Content="setting" />
+            <Button Content="aaaa"/>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.WindowCommands>
+
+    <TabControl>
+        <TabItem Header="Tab1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="127*"/>
+                    <ColumnDefinition Width="390*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Height="50" Width="100">
+                    <Button Content="OK" Width="50" Height="50" Style="{DynamicResource MetroCircleButtonStyle}"/>
+                    <Button Content="Cancel" Width="50" Height="50" Style="{DynamicResource SquareButtonStyle}"/>
+                </WrapPanel>
+                <Controls:ToggleSwitch Header="WiFi Rest State" Grid.Row="1" Grid.Column="0"/>
+                <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="1">
+                    <TextBox Controls:TextboxHelper.Watermark="This is a textbox" />
+                    <TextBox Controls:TextboxHelper.ClearTextButton="True" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+                    <Controls:ProgressRing IsActive="True"  IsLarge="False"/>
+                </StackPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="tab3">fasdfa</TabItem>
+        <TabItem Header="tab4">dr43r34</TabItem>
+        <TabItem Header="tab5">r4r4r4</TabItem>
+        <TabItem Header="tab6">4r4r4r4r</TabItem>
+        <TabItem Header="tab7">aaaa</TabItem>
+        <TabItem Header="tab8">fffffffff</TabItem>
+    </TabControl>
+
+</Controls:MetroWindow>
