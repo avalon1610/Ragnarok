@@ -16,6 +16,7 @@ using MahApps.Metro.Controls;
 using System.Windows.Interop;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace Ragnarok
 {
@@ -27,7 +28,7 @@ namespace Ragnarok
         public MainWindow()
         {
             InitializeComponent();
-            Loaded += MainWindowLoaded;
+            //Loaded += MainWindowLoaded;
         }
 
         private void DisableDoubleClick(object sender, MouseButtonEventArgs e)
@@ -74,6 +75,28 @@ namespace Ragnarok
         void MainWindowLoaded(object sender, RoutedEventArgs e)
         {
             DataContext = new MainWindowViewModel();
+        }
+
+        private static bool IsNumber(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return false;
+            foreach (char c in str)
+            {
+                if (!char.IsDigit(c))
+                    return false;
+            }
+            return true;
+        }
+
+        private void RestrictNumber(object sender, TextCompositionEventArgs e)
+        {
+            if (!IsNumber(e.Text))
+            {
+                e.Handled = true;
+            }
+            else
+                e.Handled = false;
         }
     }
 
@@ -197,5 +220,20 @@ namespace Ragnarok
             };
         }
 
+    }
+
+    public class MyConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+              object parameter, CultureInfo culture)
+        {
+            return (double)value / 2;
+        }
+
+        public object ConvertBack(object value, Type targetType,
+            object parameter, CultureInfo culture)
+        {
+            return null;
+        }
     }
 }
