@@ -36,14 +36,14 @@ namespace Ragnarok
             e.Handled = true;
         }
 
-        private void OK_Button_MouseUp(object sender, MouseButtonEventArgs e)
+     /*   private void OK_Button_MouseUp(object sender, MouseButtonEventArgs e)
         {
             wait_logo.IsActive = false;
         }
         private void Cancel_Button_MouseUp(object sender, MouseButtonEventArgs e)
         {
             wait_logo.IsActive = true;
-        }
+        }*/
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -97,6 +97,12 @@ namespace Ragnarok
             }
             else
                 e.Handled = false;
+        }
+
+        private void LoginButton(object sender, MouseButtonEventArgs e)
+        {
+            Busying.IsSelected = true;
+            doLogin();
         }
     }
 
@@ -220,20 +226,5 @@ namespace Ragnarok
             };
         }
 
-    }
-
-    public class MyConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType,
-              object parameter, CultureInfo culture)
-        {
-            return (double)value / 2;
-        }
-
-        public object ConvertBack(object value, Type targetType,
-            object parameter, CultureInfo culture)
-        {
-            return null;
-        }
     }
 }

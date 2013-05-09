@@ -16,28 +16,68 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.AnimatedSingleRowTabControl.xaml" />
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
                 <ResourceDictionary>
-                    <r:MyConverter x:Key="MyConverter"/>
-                </ResourceDictionary>
-                <ResourceDictionary>
                     <Style x:Key="TextBoxStyle" TargetType="TextBox">
                         <Setter Property="Height" Value="30" />
                         <Setter Property="Width" Value="200" />
                         <Setter Property="HorizontalAlignment" Value="Center" />
                         <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="TextAlignment" Value="Center" />
-                        <Setter Property="FontSize" Value="25" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="FontSize" Value="23" />
                     </Style>
                     <Style x:Key="PasswordBoxStyle" TargetType="PasswordBox">
                         <Setter Property="Height" Value="30" />
                         <Setter Property="Width" Value="200" />
                         <Setter Property="HorizontalAlignment" Value="Center" />
                         <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="FontSize" Value="25" />
+                        <Setter Property="FontSize" Value="23" />
+                    </Style>
+                </ResourceDictionary>
+                <ResourceDictionary>
+                    <Style x:Key="IronicallyNamedChromelessButtonStyle" TargetType="{x:Type Button}">
+                        <Setter Property="Background" Value="{DynamicResource TransparentWhiteBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="Padding" Value="1" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Grid x:Name="grid" Background="{TemplateBinding Background}">
+                                        <ContentPresenter x:Name="contentPresenter"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                          RecognizesAccessKey="True"
+                                          Opacity="0.75" />
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="contentPresenter" Property="Opacity" Value="1" />
+                                            <!-- <Setter TargetName="grid" Property="Background" Value="{DynamicResource SemiTransparentWhiteBrush}" /> -->
+                                            <Setter TargetName="grid" Property="Background" Value="#EEEEEE" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="False">
+                                            <Setter TargetName="contentPresenter" Property="Opacity" Value=".5" />
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="grid" Property="Background" Value="{DynamicResource HighlightBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="false">
+                                            <Setter Property="Foreground" Value="#ADADAD" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
+    
     <Controls:MetroWindow.WindowCommands>
         <Controls:WindowCommands>
             <Button></Button>
@@ -56,6 +96,7 @@
             </Button>
         </Controls:WindowCommands>
     </Controls:MetroWindow.WindowCommands>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="60"/>
@@ -66,11 +107,11 @@
             <RowDefinition Height="35" />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <Button x:Name="Avatar" Grid.RowSpan="2" Grid.Row="0" Grid.Column="0">
+        <Button x:Name="Avatar" Grid.RowSpan="2" Grid.Row="0" Grid.Column="0" Visibility="Hidden">
 
         </Button>
         <TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
-            <TabItem Header="Login">
+            <TabItem Header="Login" IsEnabled="False" Name="Login_Tab">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Grid >
                         <Grid.RowDefinitions>
@@ -87,17 +128,19 @@
                                 <VisualBrush Visual="{StaticResource appbar_cupcake}" Stretch="Fill" />
                             </Rectangle.OpacityMask>
                         </Rectangle>
-                        <TextBox Style="{StaticResource TextBoxStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"  PreviewTextInput="RestrictNumber">
+                        <TextBox Style="{StaticResource TextBoxStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"  PreviewTextInput="RestrictNumber"
+                                 Controls:TextboxHelper.SelectAllOnFocus="True" MaxLength="11">
                         </TextBox>
-                        <PasswordBox Style="{StaticResource PasswordBoxStyle}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalContentAlignment="Center">
-                            
+                        <PasswordBox Style="{StaticResource PasswordBoxStyle}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalContentAlignment="Center"
+                                     Controls:TextboxHelper.SelectAllOnFocus="True">
+
                         </PasswordBox>
                         <Button Grid.Row="2" Grid.Column="0"  Grid.ColumnSpan="2" Width="150" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Style="{DynamicResource SquareButtonStyle}" Content=" 登 录 " FontSize="30" FontFamily="微软雅黑"/>
+                                Style="{DynamicResource SquareButtonStyle}" Content=" 登 录 " FontSize="30" FontFamily="微软雅黑" PreviewMouseLeftButtonUp="LoginButton"  />
                     </Grid>
                 </StackPanel>
             </TabItem>
-            <TabItem>
+            <!-- <TabItem>
                 <Grid>
                     <Grid.Background>
                         <RadialGradientBrush RadiusY="0.844" RadiusX="0.879" Center="0.269,0.107" GradientOrigin="0.269,0.107">
@@ -109,8 +152,8 @@
                     <Controls:Panorama x:Name="MainPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="140" ItemsSource="{Binding Groups}" />
                     <Controls:ProgressRing IsActive="{Binding Busy}" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
-            </TabItem>
-            <TabItem Header="Test">
+            </TabItem> -->
+            <!-- <TabItem Header="Test">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="127*"/>
@@ -133,18 +176,9 @@
                         <Controls:ProgressRing Name="wait_logo" IsActive="True"/>
                     </StackPanel>
                 </Grid>
-            </TabItem>
-            <TabItem Header="RSS">
-                <StackPanel Orientation="Horizontal">
-                    <Rectangle Fill="Black" Height="30" Width="30">
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Visual="{StaticResource appbar_cupcake}" Stretch="Fill" />
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                </StackPanel>
-            </TabItem>
-            <TabItem Header="TTTT">fffffffff</TabItem>
-            <TabItem Header="temp"  Visibility="Visible" x:Name="Busying">
+            </TabItem> -->
+            
+            <TabItem Visibility="Visible" x:Name="Busying" IsEnabled="False">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
 
                     <Controls:ProgressRing IsActive="True" Width="50" Height="50"/>
