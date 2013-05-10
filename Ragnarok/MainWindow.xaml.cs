@@ -20,30 +20,15 @@ using System.Globalization;
 
 namespace Ragnarok
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : MetroWindow
+    public class MyWindow : MetroWindow
     {
-        public MainWindow()
+        public MyWindow()
         {
-            InitializeComponent();
-            //Loaded += MainWindowLoaded;
+            MouseDoubleClick += (sender, e) =>
+            {
+                e.Handled = true;
+            };
         }
-
-        private void DisableDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-        }
-
-     /*   private void OK_Button_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            wait_logo.IsActive = false;
-        }
-        private void Cancel_Button_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            wait_logo.IsActive = true;
-        }*/
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -71,6 +56,18 @@ namespace Ragnarok
         private const int WM_RBUTTONDOWN = 0x204;
         private const int WM_RBUTTONUP = 0x205;
         private const int WM_RBUTTONDBLCLK = 0x206;
+    }
+
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : MyWindow
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            //Loaded += MainWindowLoaded;
+        }
 
         void MainWindowLoaded(object sender, RoutedEventArgs e)
         {
@@ -103,6 +100,15 @@ namespace Ragnarok
         {
             Busying.IsSelected = true;
             doLogin();
+        }
+
+        private void EnterKeyLogin(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                Busying.IsSelected = true;
+                doLogin();
+            }
         }
     }
 

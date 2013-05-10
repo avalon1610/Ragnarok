@@ -31,13 +31,34 @@ namespace Ragnarok
         }
     }
 
+    public partial class PopupWindow
+    {
+        private void Submit()
+        {
+            if (VerifyCodeTextBox.Text.Length != 0)
+            {
+                WEBQQ._verifyCode = VerifyCodeTextBox.Text;
+                MyTask.DoTask(() => { WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, t => { (this.Owner as MainWindow).Login_Tab.IsSelected = true; });
+                Close();
+            }
+        }
+    }
+
     public partial class MainWindow
     {
         private void doLogin()
         {
             string qq = this.QQ.Text;
             string pwd = this.Pwd.Password;
-            MyTask.DoTask(() => { WEBQQ.TryLogin(qq, pwd, 1); }, task => { this.Login_Tab.IsSelected = true; });
+            MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, 1); }, task =>
+            {
+                if (task.Result.Length != 0)
+                {
+                    // needVerifyCodeImg
+                    WEBQQ.getVerifyCodeImg(this, task.Result);
+                }
+                //this.Login_Tab.IsSelected = true; 
+            });
 
             //DoTask(() => { return WEBQQ.PrintPwd(pwd); }, antecendent => { this.Login_Tab.Header = antecendent.Result; });
         }
@@ -61,22 +82,27 @@ namespace Ragnarok
             return Regex.Split(input, pattern, RegexOptions.IgnoreCase);
         }
 
-        public static void getVerifyCode(string qq)
+        public static bool needVerifyCodeImg = false;
+        public static string getVerifyCode(string qq)
         {
             if (qq.Length == 0)
-                return;
+                return "";
             _qq = qq;
             Random rand = new Random();
-            string url = "http://check.ptlogin2.qq.com/check?uin=" + qq + "&appid=1003903&r=" + rand.Next(0, 1);
+            string url = "http://check.ptlogin2.qq.com/check?uin=" + qq + "&appid=1003903&r=" + rand.NextDouble();
             createJS(url, code =>
             {
                 var query = split(split(split(Encoding.ASCII.GetString(code), @"\('")[1], @"'\)")[0], @"','");
                 checkVerifyCode(query[0], query[1], query[2]);
             });
+
+            if (needVerifyCodeImg)
+                return _verifyCode;
+            return "";
         }
 
-        private static string _uin;
-        private static string _verifyCode;
+        public static string _uin;
+        public static string _verifyCode;
 
         private static void checkVerifyCode(string stateCode, string verifyCode, string uin)
         {
@@ -88,33 +114,36 @@ namespace Ragnarok
             var temp_uin = string.Join("", temp.ToArray());
             uin = hexChar2Bin(temp_uin);
             _uin = uin;
+            _verifyCode = verifyCode;
             if ("0" == stateCode)
             {
-                _verifyCode = verifyCode;
                 login(_Password, _State);
             }
             else if ("1" == stateCode)
             {
-                MyTask.DoTask(() => { ;}, (task) => getVerifyCodeImg(verifyCode));
+                //MyTask.DoTask(() => { ;}, (task) => getVerifyCodeImg(verifyCode));
+                needVerifyCodeImg = true;
             }
         }
 
-        private static void getVerifyCodeImg(string verifyCode)
+        public static void getVerifyCodeImg(MainWindow main, string verifyCode)
         {
             PopupWindow popup = new PopupWindow();
-            popup.ShowDialog();
+            popup.Owner = main;
+            popup.Show();
         }
+
 
         private static string _skey = "";
         private static int _QQ = 0;            //HTML5.qq 
-        private static void login(string password, int status)
+        public static void login(string password, int status)
         {
             if (_qq.Length == 0)
                 return;
             encodePassword(password);
             createJS("http://ptlogin2.qq.com/login?u=" + _qq + "&p=" + _encodedPassword + "&verifycode=" + _verifyCode.ToUpper() + "&webqq_type=40&remember_uin=1&login2qq=1&aid=1003903&u1=http%3A%2F%2Fweb.qq.com%2Floginproxy.html%3Flogin2qq%3D1%26webqq_type%3D40&h=1&ptredirect=0&ptlang=2052&from_ui=1&pttype=1&dumy=&fp=loginerroralert&action=4-3-2475914&mibao_css=m_webqq&t=1&g=1", code =>
                 {
-                    string result = Encoding.ASCII.GetString(code);
+                    string result = Encoding.UTF8.GetString(code);
                     if (result.IndexOf("登录成功") != -1)
                     {
                         getCookie("http://qq.com", "skey", cookie_value =>
@@ -154,7 +183,7 @@ namespace Ragnarok
                     _vfwebqq = parseObject.vfwebqq;
                     _psessionid = parseObject.psessionid;
                     _status = parseObject.status;
-                    
+
 
                     //to do getMyInfo();
                 });
@@ -179,7 +208,8 @@ namespace Ragnarok
         {
             if (Convert.ToChar(password.Substring(0, 1)) != (char)16)
             {
-                password = password.Substring(0, 16);
+                if (password.Length > 16)
+                    password = password.Substring(0, 16);
                 _Password = md5(password);
                 _encodedPassword = md5(md5(hexChar2Bin(_Password) + _uin + _verifyCode.ToUpper()));
                 if (localStorage.password.Length != 0)
@@ -232,19 +262,20 @@ namespace Ragnarok
             httpRequest(GET, src, null, false, callback);
         }
 
-        private static string _Account = "";
-        private static string _Password = "";
-        private static int _State = 0;
-        private static string _qq = "";
-        public static void TryLogin(string account, string password, int state)
+        public static string _Account = "";
+        public static string _Password = "";
+        public static int _State = 0;
+        public static string _qq = "";
+
+        public static string TryLogin(string account, string password, int state)
         {
             Console.WriteLine("login begin..");
             _Account = account;
             _Password = password;
             _State = state;
             if (account.Length != 0)
-                getVerifyCode(account);
-            Thread.Sleep(2000);
+                return getVerifyCode(account);
+            return "";
         }
 
         //private static readonly string DefaultUserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31";
@@ -260,7 +291,7 @@ namespace Ragnarok
             else if (method == "POST")
             {
                 byte[] postData = Encoding.ASCII.GetBytes(query);
-                wc.Headers.Add("Content-Type","application/x-www-form-urlencoded");
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
                 buffer = wc.UploadData(url, postData);
             }
             else return;
@@ -271,7 +302,7 @@ namespace Ragnarok
 
     public class localStorage
     {
-        public static string password;
+        public static string password = "";
     }
 
     public class MyWebClient : WebClient
