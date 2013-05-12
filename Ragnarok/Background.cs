@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,6 +30,11 @@ namespace Ragnarok
         {
             Task.Factory.StartNew<int>(function).ContinueWith(callback, TaskScheduler.FromCurrentSynchronizationContext());
         }
+
+        public static void DoTask(Func<bool> function, Action<Task<bool>> callback)
+        {
+            Task.Factory.StartNew<bool>(function).ContinueWith(callback, TaskScheduler.FromCurrentSynchronizationContext());
+        }
     }
 
     public partial class PopupWindow
@@ -38,7 +44,16 @@ namespace Ragnarok
             if (VerifyCodeTextBox.Text.Length != 0)
             {
                 WEBQQ._verifyCode = VerifyCodeTextBox.Text;
-                MyTask.DoTask(() => { WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, t => { (this.Owner as MainWindow).Login_Tab.IsSelected = true; });
+                MyTask.DoTask(() => { return WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, task =>
+                {
+                    if (task.Result == false)
+                    {
+                        var mainWindow = this.Owner as MainWindow;
+                        mainWindow.ErrorMsg.Text = WEBQQ.error_msg;
+                        mainWindow.ErrorMsg_tab.IsSelected = true;
+                    }
+
+                });
                 Close();
             }
         }
@@ -46,11 +61,13 @@ namespace Ragnarok
 
     public partial class MainWindow
     {
+        string[] states = { "online", "callme", "hidden", "busy", "away", "silent" };
+
         private void doLogin()
         {
             string qq = this.QQ.Text;
             string pwd = this.Pwd.Password;
-            MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, 1); }, task =>
+            MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, states[0]); }, task =>
             {
                 if (task.Result.Length != 0)
                 {
@@ -72,10 +89,6 @@ namespace Ragnarok
             return pwd;
         }
 
-        public static MyWebClient wc = new MyWebClient();
-
-        public static readonly string GET = "GET";
-        public static readonly string POST = "POST";
 
         private static string[] split(string input, string pattern)
         {
@@ -100,7 +113,7 @@ namespace Ragnarok
                 return _verifyCode;
             return "";
         }
-
+        public static string _uin_source;
         public static string _uin;
         public static string _verifyCode;
 
@@ -113,6 +126,7 @@ namespace Ragnarok
             }
             var temp_uin = string.Join("", temp.ToArray());
             uin = hexChar2Bin(temp_uin);
+            _uin_source = temp_uin;
             _uin = uin;
             _verifyCode = verifyCode;
             if ("0" == stateCode)
@@ -136,10 +150,15 @@ namespace Ragnarok
 
         private static string _skey = "";
         private static int _QQ = 0;            //HTML5.qq 
-        public static void login(string password, int status)
+        public static string error_msg = "";
+        public static bool login(string password, string status)
         {
             if (_qq.Length == 0)
-                return;
+            {
+                error_msg = "Account field is empty.";
+                return false;
+            }
+            bool success = true;
             encodePassword(password);
             createJS("http://ptlogin2.qq.com/login?u=" + _qq + "&p=" + _encodedPassword + "&verifycode=" + _verifyCode.ToUpper() + "&webqq_type=40&remember_uin=1&login2qq=1&aid=1003903&u1=http%3A%2F%2Fweb.qq.com%2Floginproxy.html%3Flogin2qq%3D1%26webqq_type%3D40&h=1&ptredirect=0&ptlang=2052&from_ui=1&pttype=1&dumy=&fp=loginerroralert&action=4-3-2475914&mibao_css=m_webqq&t=1&g=1", code =>
                 {
@@ -161,9 +180,17 @@ namespace Ragnarok
                     }
                     else
                     {
-                        //errorMsg
+                        errorMsg(split(result, ",")[4].Substring(1, split(result, ",")[4].Length - 2));
+                        success = false;
                     }
                 });
+            return success;
+        }
+
+        private static void errorMsg(string message)
+        {
+            localStorage.logout = "true";
+            error_msg = message;
         }
 
         private static string _ptwebqq = "";
@@ -171,22 +198,114 @@ namespace Ragnarok
         private static string _vfwebqq = "";
         private static string _psessionid = "";
         private static string _status = "";
-        private static void getPsessionid(string ptwebqq, int status)
+        private static void getPsessionid(string ptwebqq, string status)
         {
             _ptwebqq = ptwebqq;
             var r = "{\"status\":\"" + status + "\",\"ptwebqq\":\"" + _ptwebqq + "\",\"passwd_sig\":\"\",\"clientid\":\"" + _clientid + "\",\"psessionid\":null}";
+            wc.Headers.Add("Referer", "http://d.web2.qq.com/proxy.html?v=20110331002");//or you get error,ret_code 103
             httpRequest(POST, "https://d.web2.qq.com/channel/login2", "r=" + r + "&clientid=" + _clientid + "&psessionid=null", true, code =>
+            {
+                dynamic resultObject = getJSON(code);
+                _vfwebqq = resultObject["vfwebqq"].ToString();
+                _psessionid = resultObject["psessionid"].ToString();
+                _status = resultObject["status"].ToString();
+
+                getMyInfo();
+            });
+        }
+
+        private static string now()
+        {
+            DateTime dt = DateTime.Parse("01/01/1970");
+            TimeSpan ts = DateTime.Now - dt;
+            long sec = Convert.ToInt64(Math.Truncate(ts.TotalMilliseconds)); // 秒数
+            return Convert.ToString(sec, 10);
+        }
+
+        private static string _face = "";
+        private static string _info = "";
+        private static void getMyInfo()
+        {
+            var face = "http://face" + new Random().Next(1, 10) + ".qun.qq.com/cgi/svr/face/getface?cache=1&type=1&fid=0&uin=" + _qq + "&vfwebqq=" + _ptwebqq + "&t=" + now();
+            _face = face;
+            var info = "http://s.web2.qq.com/api/get_friend_info2?tuin=" + _qq + "&verifysession=&code=&vfwebqq=" + _vfwebqq + "&t=" + now();
+            httpRequest(GET, info, null, false, code =>
+            {
+                _info = getJSON(code).ToString();
+
+                getMyLevel();
+            });
+        }
+
+        private static string _levelInfo = "";
+        private static void getMyLevel()
+        {
+            var url = "http://s.web2.qq.com/api/get_qq_level2?tuin=" + _qq + "&vfwebqq=" + _vfwebqq + "&t=" + now();
+            httpRequest(GET, url, null, false, code =>
+            {
+                _levelInfo = getJSON(code).ToString();
+
+                getMyPersonal();
+            });
+        }
+
+        private static string _myPersonal = "";
+        private static void getMyPersonal()
+        {
+            var url = "http://s.web2.qq.com/api/get_single_long_nick2?tuin=" + _qq + "&vfwebqq=" + _vfwebqq + "&t=" + now();
+            httpRequest(GET, url, null, false, code =>
+            {
+                _myPersonal = getJSON(code)[0]["lnick"].ToString();
+
+                getFriendsInfo();
+            });
+        }
+
+        private static string hash(string uin, string ptwebqq)
+        {
+            var b = uin;
+            var i = ptwebqq;
+            string s = "";
+            string a = i + "password error";
+            while (true)
+            {
+                if (s.Length <= a.Length)
                 {
-                    string result = Encoding.ASCII.GetString(code);
-                    dynamic parseObject = JsonConvert.DeserializeObject(result);
-                    result = parseObject.result;
-                    _vfwebqq = parseObject.vfwebqq;
-                    _psessionid = parseObject.psessionid;
-                    _status = parseObject.status;
+                    s = s + b;
+                    if (s.Length == a.Length)
+                        break;
+                }
+                else
+                {
+                    s = s.Substring(0, a.Length);
+                    break;
+                }
+            }
+            ArrayList j = new ArrayList();
+            for (var d = 0; d < s.Length; d++)
+                j.Add((int)s[d] ^ (int)a[d]);
+            string[] _a = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" };
+            string[] _j = (string[])j.ToArray(typeof(string));
+            string _s = "";
+            for (var d = 0; d < _j.Length; d++)
+            {
+                _s += _a[Convert.ToInt32(_j[d]) >> 4 & 15];
+                _s += _a[Convert.ToInt32(_j[d]) & 15];
+            }
+            return _s;
+        }
 
+        private static void getFriendsInfo()
+        {
+            var info = "http://s.web2.qq.com/api/get_user_friends2";
+            var r = "{\"h\":\"hello\",\"hash\":\"" + hash(_qq + "", _ptwebqq) + "\",\"vfwebqq\":\"" + _vfwebqq + "\"}";
+        }
 
-                    //to do getMyInfo();
-                });
+        private static dynamic getJSON(byte[] code)
+        {
+            string result = Encoding.ASCII.GetString(code);
+            dynamic parseObject = JsonConvert.DeserializeObject(result);
+            return parseObject["result"];
         }
 
         private static void getCookie(string url, string name, Action<string> callback)
@@ -211,7 +330,7 @@ namespace Ragnarok
                 if (password.Length > 16)
                     password = password.Substring(0, 16);
                 _Password = md5(password);
-                _encodedPassword = md5(md5(hexChar2Bin(_Password) + _uin + _verifyCode.ToUpper()));
+                _encodedPassword = md5(md5(String2Byte(_Password + _uin_source)) + _verifyCode.ToUpper());
                 if (localStorage.password.Length != 0)
                     localStorage.password = Convert.ToString((char)16) + md5(hexChar2Bin(_Password) + _uin);
             }
@@ -219,13 +338,30 @@ namespace Ragnarok
                 _encodedPassword = md5(password.Substring(1) + _verifyCode.ToUpper());
         }
 
-        static string md5(string input)
+        private static byte[] String2Byte(string input)
+        {
+            byte[] result = new byte[0x18]; // (32/2+8) 
+            string temp = "";
+            for (int i = 0, j = 0; i < input.Length; i = i + 2, j++)
+            {
+                temp = input.Substring(i, 2);
+                result[j] = Convert.ToByte(input.Substring(i, 2), 16);
+            }
+            return result;
+        }
+
+        private static string md5(string input)
+        {
+            return md5(Encoding.ASCII.GetBytes(input));
+        }
+
+        private static string md5(byte[] input)
         {
             // Create a new instance of the MD5CryptoServiceProvider object.
             MD5 md5Hasher = MD5.Create();
 
             // Convert the input string to a byte array and compute the hash.
-            byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(input));
+            byte[] data = md5Hasher.ComputeHash(input);
 
             // Create a new Stringbuilder to collect the bytes
             // and create a string.
@@ -239,20 +375,17 @@ namespace Ragnarok
             }
 
             // Return the hexadecimal string.
-            return sBuilder.ToString();
+            return sBuilder.ToString().ToUpper();
         }
 
         private static string hexChar2Bin(string str)
         {
-            var arr = "";
-            var temp = 0;
+            string arr = "";
+            int temp = 0;
             for (var i = 0; i < str.Length; i = i + 2)
             {
                 temp = Convert.ToInt32(str.Substring(i, 2), 16);
-                if (temp == 0)
-                    continue;
-                arr += (char)temp;
-
+                arr = arr + (char)temp;
             }
             return arr;
         }
@@ -264,10 +397,10 @@ namespace Ragnarok
 
         public static string _Account = "";
         public static string _Password = "";
-        public static int _State = 0;
+        public static string _State = "";
         public static string _qq = "";
 
-        public static string TryLogin(string account, string password, int state)
+        public static string TryLogin(string account, string password, string state)
         {
             Console.WriteLine("login begin..");
             _Account = account;
@@ -277,7 +410,10 @@ namespace Ragnarok
                 return getVerifyCode(account);
             return "";
         }
+        public static MyWebClient wc = new MyWebClient();
 
+        public static readonly string GET = "GET";
+        public static readonly string POST = "POST";
         //private static readonly string DefaultUserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31";
         private static void httpRequest(string method, string action, string query, bool urlencoded, Action<byte[]> callback, int timeout = 0)
         {
@@ -303,18 +439,41 @@ namespace Ragnarok
     public class localStorage
     {
         public static string password = "";
+        public static string logout = "";
     }
 
     public class MyWebClient : WebClient
     {
-        CookieContainer cookies = new CookieContainer();
-        public CookieContainer Cookies { get { return cookies; } }
+        private CookieContainer cookieContainer;
+
+        public MyWebClient()
+        {
+            this.cookieContainer = new CookieContainer();
+        }
+
+        public MyWebClient(CookieContainer cookies)
+        {
+            this.cookieContainer = cookies;
+        }
+
+        public CookieContainer Cookies
+        {
+            get { return this.cookieContainer; }
+            set { this.cookieContainer = value; }
+        }
+
+        //CookieContainer cookies = new CookieContainer();
+        //public CookieContainer Cookies { get { return cookies; } }
         protected override WebRequest GetWebRequest(Uri address)
         {
             WebRequest request = base.GetWebRequest(address);
-            if (request.GetType() == typeof(HttpWebRequest))
-                ((HttpWebRequest)request).CookieContainer = cookies;
+            if (request is HttpWebRequest)
+            {
+                HttpWebRequest httpRequest = request as HttpWebRequest;
+                httpRequest.CookieContainer = cookieContainer;
+            }
             return request;
         }
+
     }
 }

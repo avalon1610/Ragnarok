@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" x:Name="mWindow"
         xmlns:locals="clr-namespace:Ragnarok"
-        Title="来自火星" Height="600" Width="800" WindowStartupLocation="CenterScreen" ShowTitleBar="False" PreviewKeyUp="EnterKeyLogin">
+        Title="来自火星" Height="600" Width="800" WindowStartupLocation="CenterScreen" ShowTitleBar="False" 
+        PreviewKeyUp="OnKeyUP" MouseLeftButtonUp="OnMouseUP">
     
     <Window.Resources>
         <ResourceDictionary>
@@ -131,7 +132,8 @@
                         <PasswordBox Style="{StaticResource PasswordBoxStyle}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalContentAlignment="Center"
                 			Controls:TextboxHelper.SelectAllOnFocus="True" x:Name="Pwd" />
                         <Button Grid.Row="2" Grid.Column="0"  Grid.ColumnSpan="2" Width="150" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"
-                			Style="{DynamicResource SquareButtonStyle}" Content=" 登 录 " FontSize="30" FontFamily="微软雅黑" PreviewMouseLeftButtonUp="LoginButton"  />
+                			Style="{DynamicResource SquareButtonStyle}" Foreground="#CC119EDA"  Content=" 登 录 " FontSize="30" 
+                                FontFamily="微软雅黑" PreviewMouseLeftButtonUp="LoginButton"  />
                     </Grid>
                 </StackPanel>
             </TabItem>
@@ -175,11 +177,13 @@
 
             <TabItem Visibility="Visible" x:Name="Busying" IsEnabled="False">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-
                     <Controls:ProgressRing Width="50" Height="50" IsActive="True"/>
-                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Text="   Just a moment" />
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="#CC119EDA" Text="   Just a moment" />
                 </StackPanel>
-
+            </TabItem>
+            <TabItem x:Name="ErrorMsg_tab" IsEnabled="False" >
+                <TextBlock x:Name="ErrorMsg" HorizontalAlignment="Stretch" VerticalAlignment="Center" TextAlignment="Center"
+                    Height="30" Text="这是测试的错误消息12345abNCMD" FontSize="25" Foreground="#CC119EDA"/>
             </TabItem>
         </TabControl>
     </Grid>

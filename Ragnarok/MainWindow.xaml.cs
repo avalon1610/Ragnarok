@@ -98,17 +98,42 @@ namespace Ragnarok
 
         private void LoginButton(object sender, MouseButtonEventArgs e)
         {
+            if (QQ.Text.Length == 0 || Pwd.Password.Length == 0)
+                return;
             Busying.IsSelected = true;
             doLogin();
         }
 
         private void EnterKeyLogin(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Enter && Login_Tab.IsSelected == true)
             {
                 Busying.IsSelected = true;
                 doLogin();
             }
+        }
+
+        private void OnMouseUP(object sender, MouseButtonEventArgs e)
+        {
+            if (ErrorMsg_tab.IsSelected == true)
+            {
+                GoBackToLogin();
+                e.Handled = true;
+            }
+            
+        }
+
+        private void GoBackToLogin()
+        {
+            Login_Tab.IsSelected = true;
+        }
+
+        private void OnKeyUP(object sender, KeyEventArgs e)
+        {
+            if (Login_Tab.IsSelected == true)
+                EnterKeyLogin(sender, e);
+            else if (ErrorMsg_tab.IsSelected == true)
+                GoBackToLogin();
         }
     }
 

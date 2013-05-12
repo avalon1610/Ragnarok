@@ -44,7 +44,8 @@ namespace Ragnarok
 
             BitmapImage image = new BitmapImage();
             image.BeginInit();
-            image.UriSource = new Uri("http://captcha.qq.com/getimage?aid=1003903&r=" + rand.NextDouble() + "&uin=" + WEBQQ._qq + "&vc_type=" + WEBQQ._verifyCode);
+            string url = "http://captcha.qq.com/getimage?aid=1003903&r=" + rand.NextDouble() + "&uin=" + WEBQQ._qq + "&vc_type=" + WEBQQ._verifyCode;
+            image.StreamSource = WEBQQ.wc.OpenRead(url);
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.EndInit();
             V_Image.Source = image;
