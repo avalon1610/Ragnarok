@@ -17,6 +17,8 @@ using System.Windows.Interop;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Windows.Threading;
 
 namespace Ragnarok
 {
@@ -76,12 +78,6 @@ namespace Ragnarok
         public MainWindow()
         {
             InitializeComponent();
-            Loaded += MainWindowLoaded;
-        }
-
-        void MainWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            DataContext = new ViewModel();
         }
 
         private static bool IsNumber(string str)
@@ -129,7 +125,7 @@ namespace Ragnarok
             {
                 GoBackToLogin();
                 e.Handled = true;
-            }   
+            }
         }
 
         private void GoBackToLogin()
@@ -145,40 +141,136 @@ namespace Ragnarok
                 GoBackToLogin();
         }
 
-        public void showContact()
-        {
-            Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
-            Avatar.Visibility = Visibility.Visible;
-            Contact_tab.Visibility = Visibility.Visible;
-            Login_Tab.Visibility = Visibility.Hidden;
-            Login_Tab.Header = ""; 
-            Nick_Text.Text = WEBQQ._info["nick"].ToString();
-            Contact_tab.IsSelected = true;        
-        }
+     
     }
 
     public class ViewModel : INotifyPropertyChanged
     {
         List<PanoramaGroup> plist = new List<PanoramaGroup>();
         public ViewModel()
-        { 
+        {
             foreach (Category cate in WEBQQ.friendInfo.Categories)
             {
                 PanoramaGroup temp = new PanoramaGroup(cate.name);
-                temp.SetSource(WEBQQ.friendInfo.Friends.Take(25));
-                plist.Add(new PanoramaGroup(cate.name));
+                int count = WEBQQ.friendInfo.Friends.Count;
+                temp.SetSource(cate.Friends.Take(count));
+                plist.Add(temp);
             }
 
-            Groups = new ObservableCollection<PanoramaGroup>(plist);
+            _groups = new ObservableCollection<PanoramaGroup>(plist);
         }
 
-        public ObservableCollection<PanoramaGroup> Groups { get; set; }
+        private ObservableCollection<PanoramaGroup> _groups;
+        public ObservableCollection<PanoramaGroup> Groups
+        {
+            get { return _groups; }
+            set
+            {
+                _groups = value;
+                RaisePropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void RaisePropertyChanged(string propertyName)
+        protected virtual void RaisePropertyChanged([CallerMemberName] string caller = "")
         {
             if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                PropertyChanged(this, new PropertyChangedEventArgs(caller));
+        }
+    }
+
+    public class myPanorama : Panorama
+    {
+        public static readonly DependencyProperty MouseScrollEnabledProperty = DependencyProperty.Register("MouseScrollEnabled", typeof(bool), typeof(myPanorama), new FrameworkPropertyMetadata(true));
+        public static readonly DependencyProperty HorizontalScrollBarEnabledProperty = DependencyProperty.Register("HorizontalScrollBarEnabled", typeof(bool), typeof(myPanorama), new FrameworkPropertyMetadata(true));
+
+        public bool MouseScrollEnabled
+        {
+            get { return (bool)GetValue(MouseScrollEnabledProperty); }
+            set { SetValue(MouseScrollEnabledProperty, value); }
+        }
+
+        public bool HorizontalScrollBarEnabled
+        {
+            get { return (bool)GetValue(HorizontalScrollBarEnabledProperty); }
+            set { SetValue(HorizontalScrollBarEnabledProperty, value); }
+        }
+
+        private DispatcherTimer scrollBarTimer = new DispatcherTimer(DispatcherPriority.DataBind);
+        private ScrollViewer sv;
+        private Point scrollTarget;
+        private Point scrollStartPoint;
+        private Point scrollStartOffset;
+        private static int PixelsToMoveToBeConsideredScroll = 5;
+        //private static int PixelsToMoveToBeConsideredClick = 2;
+
+        public myPanorama()
+        {
+            scrollBarTimer.Interval = TimeSpan.FromSeconds(1);
+            scrollBarTimer.Tick += (s, e) => HideHorizontalScrollBar();
+        }
+
+        private void HideHorizontalScrollBar()
+        {
+            // Ignore when scroll happen with mouse drag or not to be viewed
+            if (!HorizontalScrollBarEnabled || Mouse.LeftButton == MouseButtonState.Pressed) return;
+
+            // Hide the scrollbar
+            scrollBarTimer.Stop();
+            if (sv.HorizontalScrollBarVisibility == ScrollBarVisibility.Visible)
+                sv.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+        }
+
+        private void ShowHorizontalScrollBar()
+        {
+            // Ignore if scrollbar is visible yet or not to be viewed
+            if (!HorizontalScrollBarEnabled || sv.HorizontalScrollBarVisibility == ScrollBarVisibility.Visible) return;
+
+            // Restart the timer and show the scrollbar
+            scrollBarTimer.Stop();
+            if (sv.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden)
+                sv.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
+            scrollBarTimer.Start();
+        }
+
+        public override void OnApplyTemplate()
+        {
+            sv = (ScrollViewer)Template.FindName("PART_ScrollViewer", this);
+
+            // Apply the handler for scrollbar visibility
+            sv.ScrollChanged += (s, e) =>
+            {
+                if (HorizontalScrollBarEnabled && Math.Abs(e.HorizontalChange) > PixelsToMoveToBeConsideredScroll)
+                    ShowHorizontalScrollBar();
+            };
+
+            base.OnApplyTemplate();
+        }
+
+        protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
+        {
+            if (!MouseScrollEnabled) return;
+
+            // Pause the scrollbar timer
+            if (scrollBarTimer.IsEnabled)
+                scrollBarTimer.Stop();
+
+            // Determine the new amount to scroll.
+            scrollTarget.X = sv.HorizontalOffset + ((e.Delta * -1) / 3);
+
+            // Scroll to the new position.
+            sv.ScrollToHorizontalOffset(scrollTarget.X);
+            CaptureMouse();
+
+            // Save starting point, used later when determining how much to scroll.
+            scrollStartPoint = e.GetPosition(this);
+            scrollStartOffset.X = sv.HorizontalOffset;
+
+            // Restart the scrollbar timer
+            if (HorizontalScrollBarEnabled)
+                scrollBarTimer.Start();
+
+            base.OnPreviewMouseWheel(e);
         }
     }
 }

@@ -5,7 +5,7 @@
         xmlns:locals="clr-namespace:Ragnarok"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Ragnarok.MainWindow"
         x:Name="mWindow"
-        Title="来自火星" Height="600" Width="800" WindowStartupLocation="CenterScreen" ShowTitleBar="False" 
+        Title="来自火星" Height="650" Width="960" WindowStartupLocation="CenterScreen" ShowTitleBar="False" 
         PreviewKeyUp="OnKeyUP" MouseLeftButtonUp="OnMouseUP">
 
     <locals:MyWindow.Resources>
@@ -78,6 +78,13 @@
                     </Style>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
+            <DataTemplate DataType="{x:Type locals:Friend}">
+                <Controls:Tile Title="{Binding nick}" Width="120" Height="120">
+                    <Image Source="images/placeholder_person.gif" Opacity="0.5"  Stretch="UniformToFill">
+
+                    </Image>
+                </Controls:Tile>
+            </DataTemplate>
         </ResourceDictionary>
     </locals:MyWindow.Resources>
 
@@ -149,29 +156,16 @@
                 </StackPanel>
             </TabItem>
             <TabItem Header="联系人" Visibility="Hidden" x:Name="Contact_tab">
-                <Controls:Panorama x:Name="ContactPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="140" ItemsSource="{Binding Groups}" />
+                <locals:myPanorama x:Name="ContactPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="140" ItemsSource="{Binding Groups}" 
+                        HeaderFontColor="#CC119EDA" HeaderFontSize="30" UseSnapBackScrolling="True"/>
+
             </TabItem>
             <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab"/>
             <TabItem Header="群" Visibility="Hidden" x:Name="Group_tab"/>
-            <!-- <TabItem>
-                <Grid>
-                    <Grid.Background>
-                        <RadialGradientBrush RadiusY="0.844" RadiusX="0.879" Center="0.269,0.107" GradientOrigin="0.269,0.107">
-                            <GradientStop Color="{DynamicResource AccentColor}"/>
-                            <GradientStop Color="{DynamicResource AccentColor3}" Offset="0.987"/>
-                        </RadialGradientBrush>
-                    </Grid.Background>
-
-                    <Controls:Panorama x:Name="MainPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="140" ItemsSource="{Binding Groups}" />
-                    <Controls:ProgressRing IsActive="{Binding Busy}" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                </Grid>
-            </TabItem> -->
-
-
             <TabItem Visibility="Visible" x:Name="Busying" IsEnabled="False">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Controls:ProgressRing Width="50" Height="50" IsActive="True"/>
-                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="#CC119EDA" Text="   Just a moment" />
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" Foreground="#CC119EDA" Text="   Please wait..." />
                 </StackPanel>
             </TabItem>
             <TabItem x:Name="ErrorMsg_tab" IsEnabled="False" >

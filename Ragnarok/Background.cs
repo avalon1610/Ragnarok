@@ -50,7 +50,7 @@ namespace Ragnarok
                     var mainWindow = this.Owner as MainWindow;
                     if (task.Result == false)
                     {
-                        
+
                         mainWindow.ErrorMsg.Text = WEBQQ.error_msg;
                         mainWindow.ErrorMsg_tab.IsSelected = true;
                     }
@@ -74,7 +74,7 @@ namespace Ragnarok
             //
             string qq = this.QQ.Text;
             string pwd = this.Pwd.Password;
-            bool loginDirectly = false;
+            //bool loginDirectly = false;
             MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, states[0]); }, task =>
             {
                 if (task.Result.Length != 0)
@@ -84,25 +84,44 @@ namespace Ragnarok
                 }
                 else
                 {
-                    loginDirectly = true;
+                    loginDirectly();
                 }
                 //this.Login_Tab.IsSelected = true; 
             });
+        }
 
-            if (loginDirectly)
+        private void loginDirectly()
+        {
+
+            MyTask.DoTask(() => { return WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, task =>
             {
-                MyTask.DoTask(() => { return WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, task =>
+                if (task.Result == false)
                 {
-                    if (task.Result == false)
-                    {
-                        this.ErrorMsg.Text = WEBQQ.error_msg;
-                        this.ErrorMsg_tab.IsSelected = true;
-                    }
-                    else
-                        showContact();
-                });
-            }
+                    this.ErrorMsg.Text = WEBQQ.error_msg;
+                    this.ErrorMsg_tab.IsSelected = true;
+                }
+                else
+                    showContact();
+            });
+
             //DoTask(() => { return WEBQQ.PrintPwd(pwd); }, antecendent => { this.Login_Tab.Header = antecendent.Result; });
+        }
+
+        public void showContact()
+        {
+
+            MyTask.DoTask(() =>
+            {
+                Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
+                Avatar.Visibility = Visibility.Visible;
+                Contact_tab.Visibility = Visibility.Visible;
+                Recent_tab.Visibility = Visibility.Visible;
+                Group_tab.Visibility = Visibility.Visible;
+                Login_Tab.Visibility = Visibility.Hidden;
+                Login_Tab.Header = "";
+                Nick_Text.Text = WEBQQ._info["nick"].ToString();
+                DataContext = new ViewModel();
+            }, code => { Contact_tab.IsSelected = true; });
         }
     }
 
@@ -474,7 +493,7 @@ namespace Ragnarok
                                             break;
                                     }
                                 }
-                                
+
                                 break;
                             case 121:
                                 break;
@@ -498,7 +517,7 @@ namespace Ragnarok
                         cate.Friends.Add(f);
                 }
             }
-            
+
         }
 
         private static void updateOnlineList(string value)
@@ -714,8 +733,14 @@ namespace Ragnarok
         public int sort { get; set; }
         public List<Friend> Friends { get; set; }
 
+        public Category()
+        {
+            Friends = new List<Friend>();
+        }
+
         public Category(int i, string n, int s)
         {
+            Friends = new List<Friend>();
             index = i;
             name = n;
             sort = s;
@@ -735,7 +760,6 @@ namespace Ragnarok
         public string is_vip { get; set; }
         public string vip_level { get; set; }
     }
-
-
 }
+
 
