@@ -1,12 +1,14 @@
-﻿<locals:MyWindow x:Class="Ragnarok.MainWindow"
+﻿<locals:MyWindow
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" x:Name="mWindow"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:locals="clr-namespace:Ragnarok"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Ragnarok.MainWindow"
+        x:Name="mWindow"
         Title="来自火星" Height="600" Width="800" WindowStartupLocation="CenterScreen" ShowTitleBar="False" 
         PreviewKeyUp="OnKeyUP" MouseLeftButtonUp="OnMouseUP">
-    
-    <Window.Resources>
+
+    <locals:MyWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colours.xaml" />
@@ -17,7 +19,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.AnimatedSingleRowTabControl.xaml" />
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
                 <ResourceDictionary>
-                    <Style x:Key="TextBoxStyle" TargetType="TextBox">
+                    <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}">
                         <Setter Property="Height" Value="30" />
                         <Setter Property="Width" Value="200" />
                         <Setter Property="HorizontalAlignment" Value="Center" />
@@ -27,7 +29,7 @@
                         <Setter Property="VerticalContentAlignment" Value="Center" />
                         <Setter Property="FontSize" Value="23" />
                     </Style>
-                    <Style x:Key="PasswordBoxStyle" TargetType="PasswordBox">
+                    <Style x:Key="PasswordBoxStyle" TargetType="{x:Type PasswordBox}">
                         <Setter Property="Height" Value="30" />
                         <Setter Property="Width" Value="200" />
                         <Setter Property="HorizontalAlignment" Value="Center" />
@@ -77,39 +79,48 @@
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </Window.Resources>
-
-    <Controls:MetroWindow.WindowCommands>
-        <Controls:WindowCommands>
-            <Button/>
-            <Button>
-                <StackPanel Orientation="Horizontal">
-                    <Rectangle Fill="Black" Height="15" Width="15">
-                        <Rectangle.Resources>
-                            <SolidColorBrush x:Key="BlackBrush" Color="White"/>
-                        </Rectangle.Resources>
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_settings}"/>
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                    <TextBlock Text=" Settings" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-        </Controls:WindowCommands>
-    </Controls:MetroWindow.WindowCommands>
+    </locals:MyWindow.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="60"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="133"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
-            <RowDefinition Height="35" />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <Button x:Name="Avatar" Grid.RowSpan="2" Grid.Row="0" Grid.Column="0" Visibility="Hidden"/>
-        <TabControl Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
+        <StackPanel x:Name="Avatar" Visibility="Hidden" Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Height="36" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="16"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="14"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="测试 式微" TextAlignment="Right" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    FontFamily="微软雅黑" FontWeight="Bold" x:Name="Nick_Text"/>
+                <TextBlock Text="LOG OUT" TextAlignment="Right" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Opacity=".5" x:Name="Logout_Button">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="1" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="False">
+                                    <Setter Property="Opacity" Value=".5" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <Image x:Name="Avatar_Image" Height="36" Width="36" HorizontalAlignment="Right"	/>
+        </StackPanel>
+        <TabControl Grid.Row="1" Grid.ColumnSpan="2">
             <TabItem Header="Login" IsEnabled="False" x:Name="Login_Tab">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Grid >
@@ -128,15 +139,20 @@
                             </Rectangle.OpacityMask>
                         </Rectangle>
                         <TextBox Style="{StaticResource TextBoxStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"  PreviewTextInput="RestrictNumber"
-                			Controls:TextboxHelper.SelectAllOnFocus="True" MaxLength="11" x:Name="QQ" />
+							Controls:TextboxHelper.SelectAllOnFocus="True" MaxLength="11" x:Name="QQ" />
                         <PasswordBox Style="{StaticResource PasswordBoxStyle}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalContentAlignment="Center"
-                			Controls:TextboxHelper.SelectAllOnFocus="True" x:Name="Pwd" />
+							Controls:TextboxHelper.SelectAllOnFocus="True" x:Name="Pwd" />
                         <Button Grid.Row="2" Grid.Column="0"  Grid.ColumnSpan="2" Width="150" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"
-                			Style="{DynamicResource SquareButtonStyle}" Foreground="#CC119EDA"  Content=" 登 录 " FontSize="30" 
-                                FontFamily="微软雅黑" PreviewMouseLeftButtonUp="LoginButton"  />
+							Style="{DynamicResource SquareButtonStyle}" Foreground="#CC119EDA"  Content=" 登 录 " FontSize="30" 
+							FontFamily="微软雅黑" PreviewMouseLeftButtonUp="LoginButton"  />
                     </Grid>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="联系人" Visibility="Hidden" x:Name="Contact_tab">
+                <Controls:Panorama x:Name="ContactPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="140" ItemsSource="{Binding Groups}" />
+            </TabItem>
+            <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab"/>
+            <TabItem Header="群" Visibility="Hidden" x:Name="Group_tab"/>
             <!-- <TabItem>
                 <Grid>
                     <Grid.Background>
@@ -150,30 +166,7 @@
                     <Controls:ProgressRing IsActive="{Binding Busy}" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
             </TabItem> -->
-            <!-- <TabItem Header="Test">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="127*"/>
-                        <ColumnDefinition Width="390*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Height="50" Width="100">
-                        <Button Content="OK" Width="50" Height="50" Style="{DynamicResource MetroCircleButtonStyle}" PreviewMouseUp="OK_Button_MouseUp"/>
-                        <Button Content="Cancel" Width="50" Height="50" Style="{DynamicResource SquareButtonStyle}" PreviewMouseUp="Cancel_Button_MouseUp"/>
-                    </WrapPanel>
-                    <Controls:ToggleSwitch Header="WiFi Rest State" Grid.Row="1" Grid.Column="0"/>
-                    <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="1">
-                        <TextBox Controls:TextboxHelper.Watermark="This is a textbox" />
-                        <TextBox Controls:TextboxHelper.ClearTextButton="True" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
-                        <Controls:ProgressRing Name="wait_logo" IsActive="True"/>
-                    </StackPanel>
-                </Grid>
-            </TabItem> -->
+
 
             <TabItem Visibility="Visible" x:Name="Busying" IsEnabled="False">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -183,7 +176,7 @@
             </TabItem>
             <TabItem x:Name="ErrorMsg_tab" IsEnabled="False" >
                 <TextBlock x:Name="ErrorMsg" HorizontalAlignment="Stretch" VerticalAlignment="Center" TextAlignment="Center"
-                    Height="30" Text="这是测试的错误消息12345abNCMD" FontSize="25" Foreground="#CC119EDA"/>
+					Height="30" Text="这是测试的错误消息12345abNCMD" FontSize="25" Foreground="#CC119EDA"/>
             </TabItem>
         </TabControl>
     </Grid>

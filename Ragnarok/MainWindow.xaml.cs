@@ -56,6 +56,16 @@ namespace Ragnarok
         private const int WM_RBUTTONDOWN = 0x204;
         private const int WM_RBUTTONUP = 0x205;
         private const int WM_RBUTTONDBLCLK = 0x206;
+
+        protected BitmapImage LoadImageFromUrl(string url)
+        {
+            BitmapImage image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = WEBQQ.wc.OpenRead(url);
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+            return image;
+        }
     }
 
     /// <summary>
@@ -66,12 +76,12 @@ namespace Ragnarok
         public MainWindow()
         {
             InitializeComponent();
-            //Loaded += MainWindowLoaded;
+            Loaded += MainWindowLoaded;
         }
 
         void MainWindowLoaded(object sender, RoutedEventArgs e)
         {
-            DataContext = new MainWindowViewModel();
+            DataContext = new ViewModel();
         }
 
         private static bool IsNumber(string str)
@@ -119,8 +129,7 @@ namespace Ragnarok
             {
                 GoBackToLogin();
                 e.Handled = true;
-            }
-            
+            }   
         }
 
         private void GoBackToLogin()
@@ -135,127 +144,41 @@ namespace Ragnarok
             else if (ErrorMsg_tab.IsSelected == true)
                 GoBackToLogin();
         }
+
+        public void showContact()
+        {
+            Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
+            Avatar.Visibility = Visibility.Visible;
+            Contact_tab.Visibility = Visibility.Visible;
+            Login_Tab.Visibility = Visibility.Hidden;
+            Login_Tab.Header = ""; 
+            Nick_Text.Text = WEBQQ._info["nick"].ToString();
+            Contact_tab.IsSelected = true;        
+        }
     }
 
-    public class MainWindowViewModel
+    public class ViewModel : INotifyPropertyChanged
     {
-        readonly PanoramaGroup _albums;
-        readonly PanoramaGroup _artists;
-        public MainWindowViewModel()
-        {
-            SampleData.Seed();
-            Albums = SampleData.Albums;
-            Artists = SampleData.Artists;
+        List<PanoramaGroup> plist = new List<PanoramaGroup>();
+        public ViewModel()
+        { 
+            foreach (Category cate in WEBQQ.friendInfo.Categories)
+            {
+                PanoramaGroup temp = new PanoramaGroup(cate.name);
+                temp.SetSource(WEBQQ.friendInfo.Friends.Take(25));
+                plist.Add(new PanoramaGroup(cate.name));
+            }
 
-            Busy = true;
-
-            _albums = new PanoramaGroup("trending tracks");
-            _artists = new PanoramaGroup("trending artists");
-
-            Groups = new ObservableCollection<PanoramaGroup> { _albums, _artists };
-
-            _artists.SetSource(SampleData.Artists.Take(25));
-            _albums.SetSource(SampleData.Albums.Take(25));
-
-
-            Busy = false;
+            Groups = new ObservableCollection<PanoramaGroup>(plist);
         }
 
         public ObservableCollection<PanoramaGroup> Groups { get; set; }
-        public bool Busy { get; set; }
-        public string Title { get; set; }
-        public int SelectedIndex { get; set; }
-        public List<Album> Albums { get; set; }
-        public List<Artist> Artists { get; set; }
-    }
 
-    public class Album
-    {
-        public int AlbumId { get; set; }
-
-        [DisplayName("Genre")]
-        public int GenreId { get; set; }
-
-        [DisplayName("Artist")]
-        public int ArtistId { get; set; }
-
-        public string Title { get; set; }
-
-        public decimal Price { get; set; }
-
-        [DisplayName("Album Art URL")]
-        public string AlbumArtUrl { get; set; }
-
-        public virtual Genre Genre { get; set; }
-
-        public virtual Artist Artist { get; set; }
-    }
-
-    public partial class Genre
-    {
-        public int GenreId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public List<Album> Albums { get; set; }
-    }
-
-    public class Artist
-    {
-        public int ArtistId { get; set; }
-        public string Name { get; set; }
-    }
-
-    public static class SampleData
-    {
-        public static List<Genre> Genres { get; set; }
-        public static List<Artist> Artists { get; set; }
-        public static List<Album> Albums { get; set; }
-        public static void Seed()
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void RaisePropertyChanged(string propertyName)
         {
-            if (Genres != null)
-                return;
-
-            Genres = new List<Genre>
-            {
-                new Genre { Name = "Rock" },
-                new Genre { Name = "Jazz" },
-                new Genre { Name = "Metal" },
-                new Genre { Name = "Alternative" },
-                new Genre { Name = "Disco" },
-                new Genre { Name = "Blues" },
-                new Genre { Name = "Latin" },
-                new Genre { Name = "Reggae" },
-                new Genre { Name = "Pop" },
-                new Genre { Name = "Classical" }
-            };
-
-            Artists = new List<Artist>
-            {
-                new Artist { Name = "Aaron Copland & London Symphony Orchestra" },
-                new Artist { Name = "Aaron Goldberg" },
-                new Artist { Name = "AC/DC" },
-                new Artist { Name = "Accept" },
-                new Artist { Name = "Adrian Leaper & Doreen de Feis" },
-                new Artist { Name = "Aerosmith" },
-                new Artist { Name = "Aisha Duo" },
-                new Artist { Name = "Alanis Morissette" },
-                new Artist { Name = "Alberto Turco & Nova Schola Gregoriana" },
-                new Artist { Name = "Alice In Chains" },
-                new Artist { Name = "Amy Winehouse" },
-                new Artist { Name = "Anita Ward" }
-            };
-
-            Albums = new List<Album>
-            {
-                new Album {Title = "The Best Of Men At Work", Genre = Genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "Accept"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-                new Album {Title = "A Copland Celebration, Vol. I", Genre = Genres.Single(g => g.Name == "Classical"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "Aaron Copland & London Symphony Orchestra"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-                new Album {Title = "Worlds", Genre = Genres.Single(g => g.Name == "Jazz"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "Aaron Goldberg"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-                new Album {Title = "For Those About To Rock We Salute You", Genre = Genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "AC/DC"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-                new Album {Title = "Let There Be Rock", Genre = Genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "AC/DC"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-                new Album {Title = "Balls to the Wall", Genre = Genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "Accept"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-                new Album {Title = "Restless and Wild", Genre = Genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = Artists.Single(a => a.Name == "Accept"), AlbumArtUrl = "/Content/Images/placeholder.gif"},
-            };
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }

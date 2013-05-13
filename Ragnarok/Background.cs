@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Ragnarok
 {
@@ -46,12 +47,15 @@ namespace Ragnarok
                 WEBQQ._verifyCode = VerifyCodeTextBox.Text;
                 MyTask.DoTask(() => { return WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, task =>
                 {
+                    var mainWindow = this.Owner as MainWindow;
                     if (task.Result == false)
                     {
-                        var mainWindow = this.Owner as MainWindow;
+                        
                         mainWindow.ErrorMsg.Text = WEBQQ.error_msg;
                         mainWindow.ErrorMsg_tab.IsSelected = true;
                     }
+                    else
+                        mainWindow.showContact();
 
                 });
                 Close();
@@ -65,8 +69,12 @@ namespace Ragnarok
 
         private void doLogin()
         {
+            //for test
+            //WEBQQ.hash("494787284", "dd0c6037243e3bd4b83f060ebbe0f293e56e4d6d6fd4752e72ad32aaf70ddeea");
+            //
             string qq = this.QQ.Text;
             string pwd = this.Pwd.Password;
+            bool loginDirectly = false;
             MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, states[0]); }, task =>
             {
                 if (task.Result.Length != 0)
@@ -74,9 +82,26 @@ namespace Ragnarok
                     // needVerifyCodeImg
                     WEBQQ.getVerifyCodeImg(this, task.Result);
                 }
+                else
+                {
+                    loginDirectly = true;
+                }
                 //this.Login_Tab.IsSelected = true; 
             });
 
+            if (loginDirectly)
+            {
+                MyTask.DoTask(() => { return WEBQQ.login(WEBQQ._Password, WEBQQ._State); }, task =>
+                {
+                    if (task.Result == false)
+                    {
+                        this.ErrorMsg.Text = WEBQQ.error_msg;
+                        this.ErrorMsg_tab.IsSelected = true;
+                    }
+                    else
+                        showContact();
+                });
+            }
             //DoTask(() => { return WEBQQ.PrintPwd(pwd); }, antecendent => { this.Login_Tab.Header = antecendent.Result; });
         }
     }
@@ -84,12 +109,6 @@ namespace Ragnarok
 
     class WEBQQ
     {
-        public static string PrintPwd(string pwd)
-        {
-            return pwd;
-        }
-
-
         private static string[] split(string input, string pattern)
         {
             return Regex.Split(input, pattern, RegexOptions.IgnoreCase);
@@ -131,7 +150,8 @@ namespace Ragnarok
             _verifyCode = verifyCode;
             if ("0" == stateCode)
             {
-                login(_Password, _State);
+                //login(_Password, _State);
+                needVerifyCodeImg = false;
             }
             else if ("1" == stateCode)
             {
@@ -161,29 +181,29 @@ namespace Ragnarok
             bool success = true;
             encodePassword(password);
             createJS("http://ptlogin2.qq.com/login?u=" + _qq + "&p=" + _encodedPassword + "&verifycode=" + _verifyCode.ToUpper() + "&webqq_type=40&remember_uin=1&login2qq=1&aid=1003903&u1=http%3A%2F%2Fweb.qq.com%2Floginproxy.html%3Flogin2qq%3D1%26webqq_type%3D40&h=1&ptredirect=0&ptlang=2052&from_ui=1&pttype=1&dumy=&fp=loginerroralert&action=4-3-2475914&mibao_css=m_webqq&t=1&g=1", code =>
+            {
+                string result = Encoding.UTF8.GetString(code);
+                if (result.IndexOf("登录成功") != -1)
                 {
-                    string result = Encoding.UTF8.GetString(code);
-                    if (result.IndexOf("登录成功") != -1)
+                    getCookie("http://qq.com", "skey", cookie_value =>
                     {
-                        getCookie("http://qq.com", "skey", cookie_value =>
-                            {
-                                _skey = cookie_value;
-                            });
-                        getCookie("http://qq.com", "ptwebqq", cookie_value =>
-                            {
-                                getPsessionid(cookie_value, status);
-                            });
-                        getCookie("http://qq.com", "uin", cookie_value =>
-                            {
-                                _QQ = Convert.ToInt32(cookie_value.Substring(0, 1), 10);
-                            });
-                    }
-                    else
+                        _skey = cookie_value;
+                    });
+                    getCookie("http://qq.com", "ptwebqq", cookie_value =>
                     {
-                        errorMsg(split(result, ",")[4].Substring(1, split(result, ",")[4].Length - 2));
-                        success = false;
-                    }
-                });
+                        getPsessionid(cookie_value, status);
+                    });
+                    getCookie("http://qq.com", "uin", cookie_value =>
+                    {
+                        _QQ = Convert.ToInt32(cookie_value.Substring(1), 10);
+                    });
+                }
+                else
+                {
+                    errorMsg(split(result, ",")[4].Substring(1, split(result, ",")[4].Length - 2));
+                    success = false;
+                }
+            });
             return success;
         }
 
@@ -202,7 +222,7 @@ namespace Ragnarok
         {
             _ptwebqq = ptwebqq;
             var r = "{\"status\":\"" + status + "\",\"ptwebqq\":\"" + _ptwebqq + "\",\"passwd_sig\":\"\",\"clientid\":\"" + _clientid + "\",\"psessionid\":null}";
-            wc.Headers.Add("Referer", "http://d.web2.qq.com/proxy.html?v=20110331002");//or you get error,ret_code 103
+            //wc.Headers.Add("Referer", "http://d.web2.qq.com/proxy.html?v=20110331002");//or you get error,ret_code 103
             httpRequest(POST, "https://d.web2.qq.com/channel/login2", "r=" + r + "&clientid=" + _clientid + "&psessionid=null", true, code =>
             {
                 dynamic resultObject = getJSON(code);
@@ -222,16 +242,17 @@ namespace Ragnarok
             return Convert.ToString(sec, 10);
         }
 
-        private static string _face = "";
-        private static string _info = "";
+        public static string _face = "";
+        public static dynamic _info = "";
         private static void getMyInfo()
         {
             var face = "http://face" + new Random().Next(1, 10) + ".qun.qq.com/cgi/svr/face/getface?cache=1&type=1&fid=0&uin=" + _qq + "&vfwebqq=" + _ptwebqq + "&t=" + now();
             _face = face;
             var info = "http://s.web2.qq.com/api/get_friend_info2?tuin=" + _qq + "&verifysession=&code=&vfwebqq=" + _vfwebqq + "&t=" + now();
+            //wc.Headers.Add("Referer", "http://d.web2.qq.com/proxy.html?v=20110331002");
             httpRequest(GET, info, null, false, code =>
             {
-                _info = getJSON(code).ToString();
+                _info = getJSON(code);
 
                 getMyLevel();
             });
@@ -261,7 +282,7 @@ namespace Ragnarok
             });
         }
 
-        private static string hash(string uin, string ptwebqq)
+        public static string hash(string uin, string ptwebqq)
         {
             var b = uin;
             var i = ptwebqq;
@@ -283,7 +304,7 @@ namespace Ragnarok
             }
             ArrayList j = new ArrayList();
             for (var d = 0; d < s.Length; d++)
-                j.Add((int)s[d] ^ (int)a[d]);
+                j.Add(Convert.ToString((int)s[d] ^ (int)a[d]));
             string[] _a = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" };
             string[] _j = (string[])j.ToArray(typeof(string));
             string _s = "";
@@ -295,16 +316,203 @@ namespace Ragnarok
             return _s;
         }
 
+        public static FriendInfo friendInfo = new FriendInfo();
         private static void getFriendsInfo()
         {
-            var info = "http://s.web2.qq.com/api/get_user_friends2";
+            var http_info = "http://s.web2.qq.com/api/get_user_friends2";
             var r = "{\"h\":\"hello\",\"hash\":\"" + hash(_qq + "", _ptwebqq) + "\",\"vfwebqq\":\"" + _vfwebqq + "\"}";
+            httpRequest(POST, http_info, "r=" + r, true, code =>
+            {
+                dynamic result = getJSON(code);
+                string test = result.ToString();
+                if (result["categories"].Count == 0)
+                    friendInfo.Categories.Add(new Category(0, "我的好友", 0));
+                else
+                {
+                    if (result["categories"][0]["index"].ToString() != "0")
+                        friendInfo.Categories.Add(new Category(0, "我的好友", 0));
+                    foreach (var cate in result["categories"])
+                    {
+                        friendInfo.Categories.Add(new Category(Convert.ToInt32(cate["index"].ToString()),
+                                                               cate["name"].ToString(),
+                                                               Convert.ToInt32(cate["sort"].ToString())));
+                    }
+                }
+
+                foreach (var friend in result["friends"])
+                {
+                    Friend f = new Friend();
+                    f.uin = friend["uin"].ToString();
+                    f.category = Convert.ToInt32(friend["categories"].ToString());
+                    f.flag = Convert.ToInt32(friend["flag"].ToString());
+                    friendInfo.Friends.Add(f);
+                }
+
+                foreach (var info in result["info"])
+                {
+                    Friend f = friendInfo.FindFriend(info["uin"].ToString());
+                    if (f == null)
+                        continue;
+                    f.face = info["face"].ToString();
+                    f.nick = info["nick"].ToString();
+                    f.face_flag = info["flag"].ToString();
+                }
+
+                foreach (var markname in result["marknames"])
+                {
+                    Friend f = friendInfo.FindFriend(markname["uin"].ToString());
+                    if (f == null)
+                        continue;
+                    f.markname = markname["markname"].ToString();
+                    f.markname_type = markname["type"].ToString();
+                }
+
+                foreach (var vipinfo in result["vipinfo"])
+                {
+                    Friend f = friendInfo.FindFriend(vipinfo["u"].ToString());
+                    if (f == null)
+                        continue;
+                    f.is_vip = vipinfo["is_vip"].ToString();
+                    f.vip_level = vipinfo["vip_level"].ToString();
+                }
+
+                getGroupsInfo();
+            });
+        }
+
+        private static dynamic _groupsInfo;
+        private static void getGroupsInfo()
+        {
+            var info = "http://s.web2.qq.com/api/get_group_name_list_mask2";
+            var r = "\"vfwebqq\":\"" + _vfwebqq + "\"}";
+            httpRequest(POST, info, "r=" + r, true, code =>
+            {
+                _groupsInfo = getJSON(code);
+
+                getOnlineList();
+            });
+        }
+
+        private static dynamic _onlineList;
+        private static void getOnlineList()
+        {
+            var url = "http://d.web2.qq.com/channel/get_online_buddies2?clientid=" + _clientid + "&psessionid=" + _psessionid;
+            httpRequest(GET, url, null, false, code =>
+            {
+                _onlineList = getJSON(code);
+
+                getPersonal();
+            });
+        }
+
+        private static string _personal = "";
+        private static void getPersonal()
+        {
+            if (_onlineList.Count == 0)
+            {
+                //personal =
+                getRecentList();
+                return;
+            }
+
+            List<string> list = new List<string>();
+            foreach (var o in _onlineList)
+            {
+                list.Add(o["uin"].ToString());
+            }
+
+            string onlinelist = "[" + String.Join(",", list.ToArray()) + "]";
+            var url = "http://s.web2.qq.com/api/get_long_nick?tuin=" + onlinelist + "&vfwebqq=" + _vfwebqq + "&t=" + now();
+            httpRequest(GET, url, null, false, code =>
+            {
+                _personal = getJSON(code).ToString();
+
+                getRecentList();
+            });
+        }
+
+        private static string _recentList = "";
+        private static void getRecentList()
+        {
+            var url = "http://d.web2.qq.com/channel/get_recent_list2";
+            var r = "{\"vfwebqq\":\"" + _vfwebqq + "\",\"clientid\":\"" + _clientid + "\",\"psessionid\":\"" + _psessionid + "\"}";
+            httpRequest(POST, url, "r=" + r + "&clientid=" + _clientid + "&psessionid=" + _psessionid, true, code =>
+            {
+                _recentList = getJSON(code).ToString();
+
+                //poll();
+                finish();
+            });
+        }
+
+        private static void poll()
+        {
+            var url = "http://d.web2.qq.com/channel/poll2";
+            var r = "{\"clientid\":\"" + _clientid + "\",\"psessionid\":\"" + _psessionid + "\",\"key\":0,\"ids\":[]}";
+            httpRequest(POST, url, "r=" + r + "&clientid=" + _clientid + "&psessonid=" + _psessionid, true, code =>
+            {
+                string result = Encoding.UTF8.GetString(code);
+                if (result.Length != 0)
+                {
+                    poll();
+                    try
+                    {
+                        dynamic parseObject = JsonConvert.DeserializeObject(result);
+                        dynamic resultObject = parseObject["result"];
+                        int retcode = Convert.ToInt32(parseObject["retcode"].ToString());
+                        switch (retcode)
+                        {
+                            case 0:
+                                foreach (var res in resultObject)
+                                {
+                                    switch (res["poll_type"].ToString() as String)
+                                    {
+                                        case "buddies_status_change":
+                                            updateOnlineList(res["value"].ToString());
+                                            break;
+                                        case "message":
+                                            break;
+                                    }
+                                }
+                                
+                                break;
+                            case 121:
+                                break;
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+                }
+            });
+        }
+
+        private static void finish()
+        {
+            foreach (Category cate in friendInfo.Categories)
+            {
+                foreach (Friend f in friendInfo.Friends)
+                {
+                    if (f.category == cate.index)
+                        cate.Friends.Add(f);
+                }
+            }
+            
+        }
+
+        private static void updateOnlineList(string value)
+        {
+
         }
 
         private static dynamic getJSON(byte[] code)
         {
-            string result = Encoding.ASCII.GetString(code);
+            string result = Encoding.UTF8.GetString(code);
             dynamic parseObject = JsonConvert.DeserializeObject(result);
+            string retcode = parseObject["retcode"].ToString();
+            if (retcode != "0")
+                MessageBox.Show("error:{0}", retcode);
             return parseObject["result"];
         }
 
@@ -420,6 +628,7 @@ namespace Ragnarok
             //string url = "GET" == method ? (query == null ? action + "?" + query : action) : action;
             string url = action;
             byte[] buffer = { 0 };
+            wc.Headers.Add("Referer", "http://d.web2.qq.com/proxy.html?v=20110331002");
             if (method == "GET")
             {
                 buffer = wc.DownloadData(url);
@@ -474,6 +683,59 @@ namespace Ragnarok
             }
             return request;
         }
-
     }
+
+    public class FriendInfo
+    {
+        public List<Category> Categories { get; set; }
+        public List<Friend> Friends { get; set; }
+
+        public FriendInfo()
+        {
+            Categories = new List<Category>();
+            Friends = new List<Friend>();
+        }
+
+        public Friend FindFriend(string uin)
+        {
+            foreach (var friend in Friends)
+            {
+                if (friend.uin == uin)
+                    return friend;
+            }
+            return null;
+        }
+    }
+
+    public class Category
+    {
+        public int index { get; set; }
+        public string name { get; set; }
+        public int sort { get; set; }
+        public List<Friend> Friends { get; set; }
+
+        public Category(int i, string n, int s)
+        {
+            index = i;
+            name = n;
+            sort = s;
+        }
+    }
+
+    public class Friend
+    {
+        public string uin { get; set; }
+        public int category { get; set; }
+        public int flag { get; set; }
+        public string face { get; set; }
+        public string nick { get; set; }
+        public string face_flag { get; set; }
+        public string markname { get; set; }
+        public string markname_type { get; set; }
+        public string is_vip { get; set; }
+        public string vip_level { get; set; }
+    }
+
+
 }
+

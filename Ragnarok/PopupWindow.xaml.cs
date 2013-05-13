@@ -37,19 +37,18 @@ namespace Ragnarok
 
         //public ImageContainer ic { get; set; }
 
-        public bool LoadComplete = false;
         private void LoadVerifyImage()
         {
             Random rand = new Random();
-
-            BitmapImage image = new BitmapImage();
-            image.BeginInit();
+            /*BitmapImage image = new BitmapImage();
+            image.BeginInit();*/
             string url = "http://captcha.qq.com/getimage?aid=1003903&r=" + rand.NextDouble() + "&uin=" + WEBQQ._qq + "&vc_type=" + WEBQQ._verifyCode;
+            /*
             image.StreamSource = WEBQQ.wc.OpenRead(url);
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.EndInit();
-            V_Image.Source = image;
-            LoadComplete = true;
+            V_Image.Source = image;*/
+            V_Image.Source = LoadImageFromUrl(url);
             //ic.VerifyImage = image;
         }
 
