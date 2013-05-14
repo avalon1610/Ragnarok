@@ -18,6 +18,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.AnimatedSingleRowTabControl.xaml" />
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
+                <ResourceDictionary Source="Panorama.xaml"/>
                 <ResourceDictionary>
                     <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}">
                         <Setter Property="Height" Value="30" />
@@ -78,13 +79,69 @@
                     </Style>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
-            <DataTemplate DataType="{x:Type locals:Friend}">
-                <Controls:Tile Title="{Binding nick}" Width="120" Height="120">
-                    <Image Source="images/placeholder_person.gif" Opacity="0.5"  Stretch="UniformToFill">
+            <DataTemplate DataType="{x:Type locals:PanoramaTileViewModel}">
+                <Border x:Name="bord"
+                        BorderThickness="2"
+                        BorderBrush="{Binding RelativeSource={RelativeSource Mode=Self},Path=Background}"
+                        Background="{Binding RelativeSource={RelativeSource AncestorType={x:Type locals:myPanorama},Mode=FindAncestor},Path=TileColorPair[0]}"
+                        Width="120" Height="120" Margin="0">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding TileClickedCommand}">
+                            <Button.Template>
+                                <ControlTemplate>
+                                    <Image x:Name="img" Source="{Binding ImageUrl}" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                           ToolTip="{Binding Text}" />
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding isDoubleWidth}" Value="True">
+                                            <Setter TargetName="img" Property="HorizontalAlignment" Value="Left" />
+                                            <Setter TargetName="img" Property="Margin" Value="10,0,0,0"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
 
-                    </Image>
-                </Controls:Tile>
+                        <Grid Margin="30,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Ellipse Stroke="White"
+                                StrokeThickness="2"
+                                Width="50"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Height="50" Fill="Transparent"/>
+
+                            <Label x:Name="liveUpdate"
+                            Content="{Binding Counter}"
+                            Visibility="Collapsed"
+                            HorizontalAlignment="Center"
+                            HorizontalContentAlignment="Center"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="30"
+                            FontWeight="DemiBold"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}, Path=IsSelected}"
+                                Value="True">
+                        <Setter TargetName="bord"
+                            Property="BorderBrush"
+                            Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type locals:myPanorama}, Mode=FindAncestor},Path=TileColorPair[1]}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsDoubleWidth}"
+                                Value="True">
+                        <Setter TargetName="bord" Property="Width" Value="240" />
+                        <Setter TargetName="liveUpdate" Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </DataTemplate.Triggers>
             </DataTemplate>
+            <!--DataTemplate DataType="{x:Type locals:Friend}">
+                    <Controls:Tile Title="{Binding nick}" Width="120" Height="120">
+                        <Image Source="images/placeholder_person.gif" Opacity="0.5"  Stretch="UniformToFill" />
+                    </Controls:Tile>
+            </DataTemplate> -->
         </ResourceDictionary>
     </locals:MyWindow.Resources>
 
@@ -107,7 +164,7 @@
                     <ColumnDefinition />
                     <ColumnDefinition Width="14"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="测试 式微" TextAlignment="Right" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                <TextBlock Text="测试 ceshi" TextAlignment="Right" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
                     FontFamily="微软雅黑" FontWeight="Bold" x:Name="Nick_Text"/>
                 <TextBlock Text="LOG OUT" TextAlignment="Right" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Opacity=".5" x:Name="Logout_Button">
@@ -156,8 +213,8 @@
                 </StackPanel>
             </TabItem>
             <TabItem Header="联系人" Visibility="Hidden" x:Name="Contact_tab">
-                <locals:myPanorama x:Name="ContactPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="140" ItemsSource="{Binding Groups}" 
-                        HeaderFontColor="#CC119EDA" HeaderFontSize="30" UseSnapBackScrolling="True"/>
+                <locals:myPanorama x:Name="ContactPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="120" ItemsSource="{Binding PanoramaItems}" 
+                        HeaderFontColor="#CC119EDA" HeaderFontSize="30" UseSnapBackScrolling="True" GroupHeight="360" Background="Transparent"/>
 
             </TabItem>
             <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab"/>

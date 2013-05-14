@@ -1,15 +1,11 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -110,18 +106,19 @@ namespace Ragnarok
         public void showContact()
         {
 
-            MyTask.DoTask(() =>
-            {
-                Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
-                Avatar.Visibility = Visibility.Visible;
-                Contact_tab.Visibility = Visibility.Visible;
-                Recent_tab.Visibility = Visibility.Visible;
-                Group_tab.Visibility = Visibility.Visible;
-                Login_Tab.Visibility = Visibility.Hidden;
-                Login_Tab.Header = "";
-                Nick_Text.Text = WEBQQ._info["nick"].ToString();
-                DataContext = new ViewModel();
-            }, code => { Contact_tab.IsSelected = true; });
+
+            Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
+            Avatar.Visibility = Visibility.Visible;
+            Contact_tab.Visibility = Visibility.Visible;
+            Recent_tab.Visibility = Visibility.Visible;
+            Group_tab.Visibility = Visibility.Visible;
+            Login_Tab.Visibility = Visibility.Hidden;
+            Login_Tab.Header = "";
+            Nick_Text.Text = WEBQQ._info["nick"].ToString();
+            Contact_tab.IsSelected = true;
+            //DataContext = new ViewModel();
+            viewmodel.SetData();
+
         }
     }
 
@@ -234,7 +231,7 @@ namespace Ragnarok
 
         private static string _ptwebqq = "";
         private static int _clientid = new Random().Next(10000000, 99999999);
-        private static string _vfwebqq = "";
+        public static string _vfwebqq = "";
         private static string _psessionid = "";
         private static string _status = "";
         private static void getPsessionid(string ptwebqq, string status)
@@ -365,6 +362,9 @@ namespace Ragnarok
                     f.category = Convert.ToInt32(friend["categories"].ToString());
                     f.flag = Convert.ToInt32(friend["flag"].ToString());
                     friendInfo.Friends.Add(f);
+                    Category c = friendInfo.FindCategory(f.category);
+                    if (c != null)
+                        c.Friends.Add(f);
                 }
 
                 foreach (var info in result["info"])
@@ -509,6 +509,7 @@ namespace Ragnarok
 
         private static void finish()
         {
+            /*
             foreach (Category cate in friendInfo.Categories)
             {
                 foreach (Friend f in friendInfo.Friends)
@@ -517,6 +518,7 @@ namespace Ragnarok
                         cate.Friends.Add(f);
                 }
             }
+             */
 
         }
 
@@ -721,6 +723,16 @@ namespace Ragnarok
             {
                 if (friend.uin == uin)
                     return friend;
+            }
+            return null;
+        }
+
+        public Category FindCategory(int index)
+        {
+            foreach (var category in Categories)
+            {
+                if (category.index == index)
+                    return category;
             }
             return null;
         }
