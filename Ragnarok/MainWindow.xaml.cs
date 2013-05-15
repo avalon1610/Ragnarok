@@ -1,5 +1,6 @@
 ﻿using MahApps.Metro.Controls;
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -47,10 +48,17 @@ namespace Ragnarok
         public static BitmapImage LoadImageFromUrl(string url)
         {
             BitmapImage image = new BitmapImage();
+            byte[] imageBytes = WEBQQ.wc.DownloadData(url);
+            if (imageBytes == null)
+                return null;
+            MemoryStream imageStream = new MemoryStream(imageBytes);
+
             image.BeginInit();
-            image.StreamSource = WEBQQ.wc.OpenRead(url);
+            image.StreamSource = imageStream;
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.EndInit();
+            image.Freeze();
+            imageStream.Close();
             return image;
         }
     }
@@ -60,11 +68,11 @@ namespace Ragnarok
     /// </summary>
     public partial class MainWindow : MyWindow
     {
-        private ViewModel viewmodel;
+        public static ViewModel viewmodel = new ViewModel();
         public MainWindow()
         {
             InitializeComponent();
-            Loaded += (sender, e) => { DataContext = viewmodel = new ViewModel(); };
+            Loaded += (sender, e) => { DataContext = viewmodel; };
         }
 
         private static bool IsNumber(string str)
@@ -126,6 +134,17 @@ namespace Ragnarok
                 EnterKeyLogin(sender, e);
             else if (ErrorMsg_tab.IsSelected == true)
                 GoBackToLogin();
+        }
+
+        private void OnLogoutButton(object sender, MouseButtonEventArgs e)
+        {
+            Login_Tab.Header = "Login";
+            Pwd.Password = "";
+            Recent_tab.Visibility = Visibility.Hidden;
+            Contact_tab.Visibility = Visibility.Hidden;
+            Group_tab.Visibility = Visibility.Hidden;
+            Login_Tab.Visibility = Visibility.Visible;
+            Login_Tab.IsSelected = true;
         }
 
     }

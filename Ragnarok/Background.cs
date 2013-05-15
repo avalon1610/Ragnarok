@@ -3,9 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Cache;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -46,7 +48,6 @@ namespace Ragnarok
                     var mainWindow = this.Owner as MainWindow;
                     if (task.Result == false)
                     {
-
                         mainWindow.ErrorMsg.Text = WEBQQ.error_msg;
                         mainWindow.ErrorMsg_tab.IsSelected = true;
                     }
@@ -67,11 +68,11 @@ namespace Ragnarok
         {
             //for test
             //WEBQQ.hash("494787284", "dd0c6037243e3bd4b83f060ebbe0f293e56e4d6d6fd4752e72ad32aaf70ddeea");
-            //
+            //           
             string qq = this.QQ.Text;
             string pwd = this.Pwd.Password;
             //bool loginDirectly = false;
-            MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, states[0]); }, task =>
+            MyTask.DoTask(() => { return WEBQQ.TryLogin(qq, pwd, states[2]); }, task =>
             {
                 if (task.Result.Length != 0)
                 {
@@ -104,9 +105,8 @@ namespace Ragnarok
         }
 
         public void showContact()
-        {
-
-
+        {         
+            viewmodel.BindingToUI();
             Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
             Avatar.Visibility = Visibility.Visible;
             Contact_tab.Visibility = Visibility.Visible;
@@ -116,9 +116,6 @@ namespace Ragnarok
             Login_Tab.Header = "";
             Nick_Text.Text = WEBQQ._info["nick"].ToString();
             Contact_tab.IsSelected = true;
-            //DataContext = new ViewModel();
-            viewmodel.SetData();
-
         }
     }
 
@@ -220,6 +217,8 @@ namespace Ragnarok
                     success = false;
                 }
             });
+            if (success)
+                MainWindow.viewmodel.SetData(); 
             return success;
         }
 
@@ -509,17 +508,7 @@ namespace Ragnarok
 
         private static void finish()
         {
-            /*
-            foreach (Category cate in friendInfo.Categories)
-            {
-                foreach (Friend f in friendInfo.Friends)
-                {
-                    if (f.category == cate.index)
-                        cate.Friends.Add(f);
-                }
-            }
-             */
-
+ 
         }
 
         private static void updateOnlineList(string value)
@@ -679,11 +668,13 @@ namespace Ragnarok
         public MyWebClient()
         {
             this.cookieContainer = new CookieContainer();
+            this.CachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
         }
 
         public MyWebClient(CookieContainer cookies)
         {
             this.cookieContainer = cookies;
+            this.CachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
         }
 
         public CookieContainer Cookies

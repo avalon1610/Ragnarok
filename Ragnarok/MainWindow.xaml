@@ -6,7 +6,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Ragnarok.MainWindow"
         x:Name="mWindow"
         Title="来自火星" Height="650" Width="960" WindowStartupLocation="CenterScreen" ShowTitleBar="False" 
-        PreviewKeyUp="OnKeyUP" MouseLeftButtonUp="OnMouseUP">
+        PreviewKeyUp="OnKeyUP" PreviewMouseLeftButtonUp="OnMouseUP">
 
     <locals:MyWindow.Resources>
         <ResourceDictionary>
@@ -36,6 +36,14 @@
                         <Setter Property="HorizontalAlignment" Value="Center" />
                         <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="FontSize" Value="23" />
+                    </Style>
+                    <Style x:Key="Logout_style" TargetType="{x:Type TextBlock}">
+                        <Setter Property="Opacity" Value=".5"/>
+                        <Style.Triggers>
+                            <Trigger Property ="IsMouseOver" Value="True">
+                                <Setter Property= "Opacity" Value="1"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </ResourceDictionary>
                 <ResourceDictionary>
@@ -81,18 +89,25 @@
             </ResourceDictionary.MergedDictionaries>
             <DataTemplate DataType="{x:Type locals:PanoramaTileViewModel}">
                 <Border x:Name="bord"
-                        BorderThickness="2"
+                        BorderThickness="0"
                         BorderBrush="{Binding RelativeSource={RelativeSource Mode=Self},Path=Background}"
                         Background="{Binding RelativeSource={RelativeSource AncestorType={x:Type locals:myPanorama},Mode=FindAncestor},Path=TileColorPair[0]}"
-                        Width="120" Height="120" Margin="0">
-                    <StackPanel Orientation="Horizontal">
-                        <Button Command="{Binding TileClickedCommand}">
+                        Width="120" Height="80" Margin="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Button Command="{Binding TileClickedCommand}" Grid.Row="0" Grid.Column="0">
                             <Button.Template>
                                 <ControlTemplate>
-                                    <Image x:Name="img" Source="{Binding ImageUrl}" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                           ToolTip="{Binding Text}" />
+                                    <Image x:Name="img" Source="{Binding ImageUrl}" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <ControlTemplate.Triggers>
-                                        <DataTrigger Binding="{Binding isDoubleWidth}" Value="True">
+                                        <DataTrigger Binding="{Binding IsDoubleWidth}" Value="True">
                                             <Setter TargetName="img" Property="HorizontalAlignment" Value="Left" />
                                             <Setter TargetName="img" Property="Margin" Value="10,0,0,0"/>
                                         </DataTrigger>
@@ -100,28 +115,8 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-
-                        <Grid Margin="30,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <Ellipse Stroke="White"
-                                StrokeThickness="2"
-                                Width="50"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Height="50" Fill="Transparent"/>
-
-                            <Label x:Name="liveUpdate"
-                            Content="{Binding Counter}"
-                            Visibility="Collapsed"
-                            HorizontalAlignment="Center"
-                            HorizontalContentAlignment="Center"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Foreground="White"
-                            FontFamily="Segoe UI"
-                            FontSize="30"
-                            FontWeight="DemiBold"/>
-                        </Grid>
-                    </StackPanel>
+                        <TextBlock Text="{Binding Text}" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left" FontFamily="微软雅黑"/>
+                    </Grid>
                 </Border>
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}, Path=IsSelected}"
@@ -133,15 +128,10 @@
                     <DataTrigger Binding="{Binding IsDoubleWidth}"
                                 Value="True">
                         <Setter TargetName="bord" Property="Width" Value="240" />
-                        <Setter TargetName="liveUpdate" Property="Visibility" Value="Visible" />
+                        <!--<Setter TargetName="liveUpdate" Property="Visibility" Value="Visible" />-->
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
-            <!--DataTemplate DataType="{x:Type locals:Friend}">
-                    <Controls:Tile Title="{Binding nick}" Width="120" Height="120">
-                        <Image Source="images/placeholder_person.gif" Opacity="0.5"  Stretch="UniformToFill" />
-                    </Controls:Tile>
-            </DataTemplate> -->
         </ResourceDictionary>
     </locals:MyWindow.Resources>
 
@@ -154,7 +144,8 @@
             <RowDefinition Height="20"/>
             <RowDefinition />
         </Grid.RowDefinitions>
-        <StackPanel x:Name="Avatar" Visibility="Hidden" Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Height="36" HorizontalAlignment="Right" VerticalAlignment="Top">
+        <StackPanel x:Name="Avatar" Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Height="36" 
+                    HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="9999" Visibility="Hidden">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="20"/>
@@ -167,20 +158,7 @@
                 <TextBlock Text="测试 ceshi" TextAlignment="Right" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
                     FontFamily="微软雅黑" FontWeight="Bold" x:Name="Nick_Text"/>
                 <TextBlock Text="LOG OUT" TextAlignment="Right" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Opacity=".5" x:Name="Logout_Button">
-                    <TextBlock.Style>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Opacity" Value="1" />
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="False">
-                                    <Setter Property="Opacity" Value=".5" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                    x:Name="Logout_Button" Style="{StaticResource Logout_style}" MouseLeftButtonUp="OnLogoutButton"/>
             </Grid>
             <Image x:Name="Avatar_Image" Height="36" Width="36" HorizontalAlignment="Right"	/>
         </StackPanel>
@@ -205,7 +183,7 @@
                         <TextBox Style="{StaticResource TextBoxStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"  PreviewTextInput="RestrictNumber"
 							Controls:TextboxHelper.SelectAllOnFocus="True" MaxLength="11" x:Name="QQ" />
                         <PasswordBox Style="{StaticResource PasswordBoxStyle}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalContentAlignment="Center"
-							Controls:TextboxHelper.SelectAllOnFocus="True" x:Name="Pwd" />
+							Controls:TextboxHelper.SelectAllOnFocus="True" x:Name="Pwd"/>
                         <Button Grid.Row="2" Grid.Column="0"  Grid.ColumnSpan="2" Width="150" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"
 							Style="{DynamicResource SquareButtonStyle}" Foreground="#CC119EDA"  Content=" 登 录 " FontSize="30" 
 							FontFamily="微软雅黑" PreviewMouseLeftButtonUp="LoginButton"  />
@@ -213,8 +191,8 @@
                 </StackPanel>
             </TabItem>
             <TabItem Header="联系人" Visibility="Hidden" x:Name="Contact_tab">
-                <locals:myPanorama x:Name="ContactPanorama" VerticalAlignment="Stretch" Margin="0,25,25,25" ItemBox="120" ItemsSource="{Binding PanoramaItems}" 
-                        HeaderFontColor="#CC119EDA" HeaderFontSize="30" UseSnapBackScrolling="True" GroupHeight="360" Background="Transparent"/>
+                <locals:myPanorama x:Name="ContactPanorama" VerticalAlignment="Top" Margin="0,0,0,0" ItemBox="120" ItemsSource="{Binding PanoramaItems}" 
+                        HeaderFontColor="#CC119EDA" HeaderFontSize="20" GroupHeight="360" Background="#EEEEEE" UseSnapBackScrolling="False"/>
 
             </TabItem>
             <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab"/>
