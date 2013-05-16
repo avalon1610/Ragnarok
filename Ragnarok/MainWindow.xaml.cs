@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
@@ -47,8 +48,9 @@ namespace Ragnarok
 
         public static BitmapImage LoadImageFromUrl(string url)
         {
+            MyWebClient wc = WEBQQ.wc_primary.IsBusy ? new MyWebClient(WEBQQ.wc_primary.Cookies) : WEBQQ.wc_primary;
             BitmapImage image = new BitmapImage();
-            byte[] imageBytes = WEBQQ.wc.DownloadData(url);
+            byte[] imageBytes = wc.DownloadData(url);
             if (imageBytes == null)
                 return null;
             MemoryStream imageStream = new MemoryStream(imageBytes);
@@ -136,7 +138,7 @@ namespace Ragnarok
                 GoBackToLogin();
         }
 
-        private void OnLogoutButton(object sender, MouseButtonEventArgs e)
+        private void OnLogoutButton(object sender, RoutedEventArgs e)
         {
             Login_Tab.Header = "Login";
             Pwd.Password = "";
@@ -144,7 +146,15 @@ namespace Ragnarok
             Contact_tab.Visibility = Visibility.Hidden;
             Group_tab.Visibility = Visibility.Hidden;
             Login_Tab.Visibility = Visibility.Visible;
+            Avatar.Visibility = Visibility.Hidden;
             Login_Tab.IsSelected = true;
+        }
+
+        public static RecentCollection rc = new RecentCollection();
+        private void Grid_Loaded(object sender, RoutedEventArgs e)
+        {
+            Grid grid = sender as Grid;
+            grid.DataContext = rc;
         }
 
     }

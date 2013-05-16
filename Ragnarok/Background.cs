@@ -83,7 +83,6 @@ namespace Ragnarok
                 {
                     loginDirectly();
                 }
-                //this.Login_Tab.IsSelected = true; 
             });
         }
 
@@ -105,7 +104,7 @@ namespace Ragnarok
         }
 
         public void showContact()
-        {         
+        {
             viewmodel.BindingToUI();
             Avatar_Image.Source = LoadImageFromUrl(WEBQQ._face);
             Avatar.Visibility = Visibility.Visible;
@@ -218,7 +217,7 @@ namespace Ragnarok
                 }
             });
             if (success)
-                MainWindow.viewmodel.SetData(); 
+                MainWindow.viewmodel.SetData();
             return success;
         }
 
@@ -458,7 +457,7 @@ namespace Ragnarok
             {
                 _recentList = getJSON(code).ToString();
 
-                //poll();
+                poll();
                 finish();
             });
         }
@@ -495,6 +494,7 @@ namespace Ragnarok
 
                                 break;
                             case 121:
+                                // disconnect
                                 break;
                         }
                     }
@@ -503,12 +503,12 @@ namespace Ragnarok
                         MessageBox.Show(ex.Message);
                     }
                 }
-            });
+            },true,90000);
         }
 
         private static void finish()
         {
- 
+
         }
 
         private static void updateOnlineList(string value)
@@ -528,6 +528,7 @@ namespace Ragnarok
 
         private static void getCookie(string url, string name, Action<string> callback)
         {
+            MyWebClient wc = WEBQQ.wc_primary.IsBusy ? new MyWebClient(WEBQQ.wc_primary.Cookies) : WEBQQ.wc_primary;
             var cookies = wc.Cookies.GetCookies(new Uri(url));
             foreach (Cookie cookie in cookies)
             {
@@ -620,7 +621,6 @@ namespace Ragnarok
 
         public static string TryLogin(string account, string password, string state)
         {
-            Console.WriteLine("login begin..");
             _Account = account;
             _Password = password;
             _State = state;
@@ -628,32 +628,81 @@ namespace Ragnarok
                 return getVerifyCode(account);
             return "";
         }
-        public static MyWebClient wc = new MyWebClient();
+        public static MyWebClient wc_primary = new MyWebClient();
+        public static MyWebClient wc_copy = null;
 
-        public static readonly string GET = "GET";
-        public static readonly string POST = "POST";
+        private static readonly string GET = "GET";
+        private static readonly string POST = "POST";
         //private static readonly string DefaultUserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31";
-        private static void httpRequest(string method, string action, string query, bool urlencoded, Action<byte[]> callback, int timeout = 0)
+        private static void httpRequest(string method, string action, string query, bool urlencoded, Action<byte[]> callback, bool async = false, int timeout = 3000)
         {
-            //string url = "GET" == method ? (query == null ? action + "?" + query : action) : action;
+            MyWebClient wc;
+            if (wc_primary.IsBusy)
+                wc = new MyWebClient(wc_primary.Cookies);
+            else wc = wc_primary;
+
+            wc.timeout = timeout;
+            if (async == true)
+            {
+                wc.callback = callback;
+            }
+
             string url = action;
             byte[] buffer = { 0 };
             wc.Headers.Add("Referer", "http://d.web2.qq.com/proxy.html?v=20110331002");
-            if (method == "GET")
+
+            try
             {
-                buffer = wc.DownloadData(url);
+                if (method == GET)
+                {
+                    if (async)
+                    {
+                        wc.DownloadDataCompleted += OnGetCompleted;
+                        wc.DownloadDataAsync(new Uri(url));
+                    }
+                    else
+                        buffer = wc.DownloadData(url);
+                }
+                else if (method == POST)
+                {
+                    byte[] postData = Encoding.ASCII.GetBytes(query);
+                    wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                    if (async)
+                    {
+                        wc.UploadDataCompleted += OnPostCompleted;
+                        wc.UploadDataAsync(new Uri(url), postData);
+                    }
+                    else
+                        buffer = wc.UploadData(url, postData);
+                }
+                else return; 
+                if (callback != null && async == false)
+                    callback.Invoke(buffer);
             }
-            else if (method == "POST")
+            catch (WebException e)
             {
-                byte[] postData = Encoding.ASCII.GetBytes(query);
-                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-                buffer = wc.UploadData(url, postData);
-            }
-            else return;
-            if (callback != null)
-                callback.Invoke(buffer);
+                if (e.Status == WebExceptionStatus.Timeout)
+                    error_msg = "请求超时...";
+            }     
+        }
+
+        private static void OnGetCompleted(Object sender, DownloadDataCompletedEventArgs e)
+        {
+            MyWebClient mwc = sender as MyWebClient;
+            byte[] buffer = e.Result;
+            if (mwc.callback != null)
+                mwc.callback.Invoke(buffer);
+        }
+
+        private static void OnPostCompleted(object sender, UploadDataCompletedEventArgs e)
+        {
+            MyWebClient mwc = sender as MyWebClient;
+            byte[] buffer = e.Result;
+            if (mwc.callback != null)
+                mwc.callback.Invoke(buffer);
         }
     }
+
 
     public class localStorage
     {
@@ -683,8 +732,8 @@ namespace Ragnarok
             set { this.cookieContainer = value; }
         }
 
-        //CookieContainer cookies = new CookieContainer();
-        //public CookieContainer Cookies { get { return cookies; } }
+        public Action<byte[]> callback = null;
+        public int timeout = 0;
         protected override WebRequest GetWebRequest(Uri address)
         {
             WebRequest request = base.GetWebRequest(address);
@@ -692,6 +741,12 @@ namespace Ragnarok
             {
                 HttpWebRequest httpRequest = request as HttpWebRequest;
                 httpRequest.CookieContainer = cookieContainer;
+
+                // this timeout only work for synchronous,not asynchronous 
+                if (timeout == 0)
+                    timeout = Timeout.Infinite;
+                httpRequest.Timeout = timeout;
+                httpRequest.ReadWriteTimeout = timeout;
             }
             return request;
         }

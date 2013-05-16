@@ -25,8 +25,6 @@ namespace Ragnarok
         public PopupWindow()
         {
             InitializeComponent();
-            //ic = new ImageContainer();
-            //this.DataContext = ic;
             LoadVerifyImage();
             Loaded += (sender, e) =>
             {
@@ -35,21 +33,12 @@ namespace Ragnarok
             };
         }
 
-        //public ImageContainer ic { get; set; }
-
         private void LoadVerifyImage()
         {
             Random rand = new Random();
-            /*BitmapImage image = new BitmapImage();
-            image.BeginInit();*/
             string url = "http://captcha.qq.com/getimage?aid=1003903&r=" + rand.NextDouble() + "&uin=" + WEBQQ._qq + "&vc_type=" + WEBQQ._verifyCode;
-            /*
-            image.StreamSource = WEBQQ.wc.OpenRead(url);
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.EndInit();
-            V_Image.Source = image;*/
             V_Image.Source = LoadImageFromUrl(url);
-            //ic.VerifyImage = image;
+
         }
 
         private void OnOK(object sender, MouseButtonEventArgs e)
@@ -62,34 +51,5 @@ namespace Ragnarok
             if (e.Key == Key.Enter)
                 Submit();
         }
-    }
-
-    /*
-    public class ImageContainer : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
-        private ImageSource verify_image;
-        public ImageSource VerifyImage
-        {
-            get { return verify_image; }
-            set
-            {
-                if (verify_image != value)
-                {
-                    verify_image = value;
-                    propchanged("verify_image");
-                }
-            }
-        }
-
-        private void propchanged(string info)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
-            }
-        }
-    }
-     */
-
+    }  
 }

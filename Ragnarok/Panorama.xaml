@@ -30,12 +30,12 @@
                 <Style.Resources>
                     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
                 </Style.Resources>
-                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Padding" Value="5"/>
                 <Setter Property="Margin" Value="0"/>
             </Style>
         </DataTemplate.Resources>
 
-        <DockPanel LastChildFill="True" Background="Transparent">
+        <DockPanel LastChildFill="True" Background="Transparent" >
             <Label Style="{StaticResource headerLabelStyle}" Content="{Binding Header}" DockPanel.Dock="Top"/>
             <ListBox ItemsSource="{Binding Tiles}"
                      SelectionMode="Single"
@@ -43,7 +43,7 @@
                      BorderBrush="Transparent"
                      Background="Transparent"
                      IsSynchronizedWithCurrentItem="True"
-                     ItemContainerStyle="{StaticResource transparentListBoxItemStyle}">
+                     ItemContainerStyle="{StaticResource transparentListBoxItemStyle}" VerticalAlignment="Top">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Height="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:myPanorama},Mode=FindAncestor},Path=GroupHeight}">

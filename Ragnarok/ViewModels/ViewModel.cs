@@ -33,6 +33,7 @@ namespace Ragnarok
         public void ExecuteTileClickedCommand(object parameter)
         {
             MessageBox.Show(string.Format("you clicked {0}", this.Text));
+            MainWindow.rc.addRecent(new Recent(ImageUrl, Text, uin));
         }
     }
 
@@ -45,7 +46,6 @@ namespace Ragnarok
 
         public void BindingToUI()
         {
-            Console.WriteLine("BindingToUI thread:{0}", Thread.CurrentThread.ManagedThreadId);
             PanoramaItems = new ObservableCollection<PanoramaGroup>(data);
         }
 

@@ -86,12 +86,15 @@
                         </Setter>
                     </Style>
                 </ResourceDictionary>
+                <ResourceDictionary>
+                    <locals:RecentCollection x:Key="Recent"/>
+                </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
             <DataTemplate DataType="{x:Type locals:PanoramaTileViewModel}">
                 <Border x:Name="bord"
-                        BorderThickness="0"
-                        BorderBrush="{Binding RelativeSource={RelativeSource Mode=Self},Path=Background}"
-                        Background="{Binding RelativeSource={RelativeSource AncestorType={x:Type locals:myPanorama},Mode=FindAncestor},Path=TileColorPair[0]}"
+                        BorderThickness="2"
+                        BorderBrush="Transparent"
+                        Background="White"
                         Width="120" Height="80" Margin="0">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -115,15 +118,15 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <TextBlock Text="{Binding Text}" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left" FontFamily="微软雅黑"/>
+                        <TextBlock Text="{Binding Text}" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left" FontFamily="微软雅黑" Foreground="Black"/>
                     </Grid>
                 </Border>
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}, Mode=FindAncestor}, Path=IsSelected}"
                                 Value="True">
                         <Setter TargetName="bord"
-                            Property="BorderBrush"
-                            Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type locals:myPanorama}, Mode=FindAncestor},Path=TileColorPair[1]}"/>
+                                Property="BorderBrush"
+                                Value="#CC119EDA"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding IsDoubleWidth}"
                                 Value="True">
@@ -158,7 +161,7 @@
                 <TextBlock Text="测试 ceshi" TextAlignment="Right" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
                     FontFamily="微软雅黑" FontWeight="Bold" x:Name="Nick_Text"/>
                 <TextBlock Text="LOG OUT" TextAlignment="Right" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    x:Name="Logout_Button" Style="{StaticResource Logout_style}" MouseLeftButtonUp="OnLogoutButton"/>
+                    x:Name="Logout_Button" Style="{StaticResource Logout_style}" PreviewMouseDown="OnLogoutButton" />
             </Grid>
             <Image x:Name="Avatar_Image" Height="36" Width="36" HorizontalAlignment="Right"	/>
         </StackPanel>
@@ -191,11 +194,56 @@
                 </StackPanel>
             </TabItem>
             <TabItem Header="联系人" Visibility="Hidden" x:Name="Contact_tab">
-                <locals:myPanorama x:Name="ContactPanorama" VerticalAlignment="Top" Margin="0,0,0,0" ItemBox="120" ItemsSource="{Binding PanoramaItems}" 
-                        HeaderFontColor="#CC119EDA" HeaderFontSize="20" GroupHeight="360" Background="#EEEEEE" UseSnapBackScrolling="False"/>
-
+                <locals:myPanorama x:Name="ContactPanorama" 
+                                   VerticalAlignment="Stretch" 
+                                   Margin="0,0,0,70" 
+                                   ItemBox="130" 
+                                   ItemsSource="{Binding PanoramaItems}" 
+                                   HeaderFontColor="#CC119EDA" 
+                                   HeaderFontSize="20" 
+                                   GroupHeight="448" 
+                                   Background="#EEEEEE" 
+                                   UseSnapBackScrolling="False"/>
             </TabItem>
-            <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab"/>
+            <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab">
+                <Grid Margin="10" Loaded="Grid_Loaded" ><!--DataContext="{Binding Source={StaticResource Recent}}">-->
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="80"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <ListBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                             ItemsSource="{Binding RecentItems}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding image}"/>
+                                    <TextBlock Text="{Binding name}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <Setter Property="Background" Value="#EEEEEE"  />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="Gold" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                    <RichTextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="1">
+
+                    </RichTextBox>
+                    <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
+
+                    </TextBox>
+                </Grid>
+            </TabItem>
             <TabItem Header="群" Visibility="Hidden" x:Name="Group_tab"/>
             <TabItem Visibility="Visible" x:Name="Busying" IsEnabled="False">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
