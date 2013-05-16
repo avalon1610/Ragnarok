@@ -105,7 +105,7 @@
                             <ColumnDefinition Width="50"/>
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <Button Command="{Binding TileClickedCommand}" Grid.Row="0" Grid.Column="0">
+                        <Button Command="{Binding TileClickedCommand}" Grid.Row="0" Grid.Column="0" Click="Contact_click">
                             <Button.Template>
                                 <ControlTemplate>
                                     <Image x:Name="img" Source="{Binding ImageUrl}" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -216,12 +216,12 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <ListBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                             ItemsSource="{Binding RecentItems}">
+                             ItemsSource="{Binding RecentItems}" x:Name="RecentListBox">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <Image Source="{Binding image}"/>
-                                    <TextBlock Text="{Binding name}"/>
+                                    <TextBlock Text="{Binding name}" Uid="{Binding uin}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -231,6 +231,9 @@
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="Gold" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#CC119EDA"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace Ragnarok
@@ -62,6 +63,25 @@ namespace Ragnarok
             image.Freeze();
             imageStream.Close();
             return image;
+        }
+
+        public static childItem FindVisualChild<childItem>(DependencyObject obj) where childItem : DependencyObject
+        {
+            // Search immediate children
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj);i++ )
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child is childItem)
+                    return (childItem)child;
+                else
+                {
+                    childItem childofChild = FindVisualChild<childItem>(child);
+                    if (childofChild != null)
+                        return childofChild;
+                }
+            }
+
+            return null;
         }
     }
 
@@ -157,5 +177,19 @@ namespace Ragnarok
             grid.DataContext = rc;
         }
 
+        private void Contact_click(object sender, RoutedEventArgs e)
+        {
+            Recent_tab.IsSelected = true;
+            for (int i = 0; i < RecentListBox.Items.Count; i++)
+            {
+                DependencyObject obj = RecentListBox.ItemContainerGenerator.ContainerFromIndex(i);
+                TextBlock block = FindVisualChild<TextBlock>(obj);
+                if (block != null && block.Uid == Convert.ToString(rc.now_uin))
+                {
+                    RecentListBox.SelectedItem = obj as ListBoxItem;
+                    break;
+                }
+            }
+        }
     }
 }

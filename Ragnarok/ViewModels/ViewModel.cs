@@ -32,7 +32,6 @@ namespace Ragnarok
 
         public void ExecuteTileClickedCommand(object parameter)
         {
-            MessageBox.Show(string.Format("you clicked {0}", this.Text));
             MainWindow.rc.addRecent(new Recent(ImageUrl, Text, uin));
         }
     }

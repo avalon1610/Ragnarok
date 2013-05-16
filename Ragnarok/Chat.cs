@@ -12,11 +12,13 @@ namespace Ragnarok
     {
         public dynamic image { get; set; }
         public string name { get; set; }
+        public long uin { get; set; }
 
         public Recent(dynamic image,string name,long uin)
         {
             this.image = image;
             this.name = name;
+            this.uin = uin;
         }
     }
 
@@ -24,10 +26,17 @@ namespace Ragnarok
     {
         public RecentCollection() { }
         private List<Recent> items = new List<Recent>();
+        public long now_uin = 0;
 
-        public void addRecent(Recent item)
+        public void addRecent(Recent i)
         {
-            items.Add(item);
+            now_uin = i.uin;
+            foreach (Recent item in items)
+            {
+                if (item.uin == i.uin)
+                    return;
+            }
+            items.Add(i);         
             RecentItems = new ObservableCollection<Recent>(items);
         }
         private ObservableCollection<Recent> recentItems;
