@@ -30,8 +30,8 @@
                 <Style.Resources>
                     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
                 </Style.Resources>
-                <Setter Property="Padding" Value="5"/>
-                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Margin" Value="5"/>
             </Style>
         </DataTemplate.Resources>
 

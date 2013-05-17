@@ -49,6 +49,8 @@ namespace Ragnarok
 
         public static BitmapImage LoadImageFromUrl(string url)
         {
+            if (url.Length == 0)
+                return null;
             MyWebClient wc = WEBQQ.wc_primary.IsBusy ? new MyWebClient(WEBQQ.wc_primary.Cookies) : WEBQQ.wc_primary;
             BitmapImage image = new BitmapImage();
             byte[] imageBytes = wc.DownloadData(url);

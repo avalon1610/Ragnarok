@@ -95,7 +95,7 @@
                         BorderThickness="2"
                         BorderBrush="Transparent"
                         Background="White"
-                        Width="120" Height="80" Margin="0">
+                        Width="200" Height="125" Margin="0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="50"/>
@@ -197,16 +197,17 @@
                 <locals:myPanorama x:Name="ContactPanorama" 
                                    VerticalAlignment="Stretch" 
                                    Margin="0,0,0,70" 
-                                   ItemBox="130" 
+                                   ItemBox="210" 
                                    ItemsSource="{Binding PanoramaItems}" 
                                    HeaderFontColor="#CC119EDA" 
                                    HeaderFontSize="20" 
-                                   GroupHeight="448" 
+                                   GroupHeight="375" 
                                    Background="#EEEEEE" 
                                    UseSnapBackScrolling="False"/>
             </TabItem>
             <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab">
-                <Grid Margin="10" Loaded="Grid_Loaded" ><!--DataContext="{Binding Source={StaticResource Recent}}">-->
+                <Grid Margin="10" Loaded="Grid_Loaded" >
+                    <!--DataContext="{Binding Source={StaticResource Recent}}">-->
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition Height="80"/>
@@ -215,25 +216,35 @@
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <ListBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                             ItemsSource="{Binding RecentItems}" x:Name="RecentListBox">
+                    <ListBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" 
+                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                             ItemsSource="{Binding RecentItems}" x:Name="RecentListBox" SelectionMode="Single"
+                             BorderThickness="0" Padding="-1"
+                             BorderBrush="Transparent"
+                             Background="Transparent">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="{Binding image}"/>
-                                    <TextBlock Text="{Binding name}" Uid="{Binding uin}"/>
-                                </StackPanel>
+                                <Border Background="White" BorderThickness="0" BorderBrush="Red" 
+                                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                        Margin="0,2,0,2">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="{Binding image}" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding name}" Uid="{Binding uin}"/>
+                                    </StackPanel>                               
+                                </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="{x:Type ListBoxItem}">
-                                <Setter Property="Background" Value="#EEEEEE"  />
+                                <Setter Property="Background" Value="Transparent"  />
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="Gold" />
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="#CC119EDA"/>
+                                        <Setter Property="Foreground" Value="#CC119EDA"/>
+                                        <Setter Property="Background" Value="Transparent"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
