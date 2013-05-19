@@ -63,6 +63,9 @@
   <PropertyGroup>
     <SignManifests>true</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>1368951154_104472.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.0.10.1.1\lib\net45\MahApps.Metro.dll</HintPath>
@@ -95,6 +98,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Chat.cs" />
+    <Compile Include="TabContent.cs" />
     <Compile Include="ViewModels\INPCBase.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
     <Page Include="MainWindow.xaml">
@@ -184,6 +188,9 @@
   <ItemGroup>
     <Resource Include="images\blank-cd.png" />
     <Resource Include="images\placeholder_person.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="1368951154_104472.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

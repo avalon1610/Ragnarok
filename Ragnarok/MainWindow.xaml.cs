@@ -70,7 +70,7 @@ namespace Ragnarok
         public static childItem FindVisualChild<childItem>(DependencyObject obj) where childItem : DependencyObject
         {
             // Search immediate children
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj);i++ )
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
                 if (child is childItem)
@@ -173,6 +173,7 @@ namespace Ragnarok
         }
 
         public static RecentCollection rc = new RecentCollection();
+
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             Grid grid = sender as Grid;
@@ -182,16 +183,18 @@ namespace Ragnarok
         private void Contact_click(object sender, RoutedEventArgs e)
         {
             Recent_tab.IsSelected = true;
-            for (int i = 0; i < RecentListBox.Items.Count; i++)
-            {
-                DependencyObject obj = RecentListBox.ItemContainerGenerator.ContainerFromIndex(i);
-                TextBlock block = FindVisualChild<TextBlock>(obj);
-                if (block != null && block.Uid == Convert.ToString(rc.now_uin))
-                {
-                    RecentListBox.SelectedItem = obj as ListBoxItem;
-                    break;
-                }
-            }
+
+            //for (int i = 0; i < RecentListBox.Items.Count; i++)
+            //{
+            //    DependencyObject obj = RecentListBox.ItemContainerGenerator.ContainerFromIndex(i);
+            //    TextBlock block = FindVisualChild<TextBlock>(obj);
+            //    if (block != null && block.Uid == Convert.ToString(rc.now_uin))
+            //    {
+            //        RecentListBox.SelectedItem = obj as ListBoxItem;
+            //        break;
+            //    }
+            //}
         }
     }
+
 }

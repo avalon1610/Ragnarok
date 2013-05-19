@@ -86,9 +86,9 @@
                         </Setter>
                     </Style>
                 </ResourceDictionary>
-                <ResourceDictionary>
+                <!--<ResourceDictionary>
                     <locals:RecentCollection x:Key="Recent"/>
-                </ResourceDictionary>
+                </ResourceDictionary>-->
             </ResourceDictionary.MergedDictionaries>
             <DataTemplate DataType="{x:Type locals:PanoramaTileViewModel}">
                 <Border x:Name="bord"
@@ -178,11 +178,12 @@
                             <ColumnDefinition />
                             <ColumnDefinition Width="220"/>
                         </Grid.ColumnDefinitions>
-                        <Rectangle x:Name="Avatar_login" Grid.RowSpan="2" Grid.Row="0" Grid.Column="0" Width="75" Height="75" Margin="0,2" Fill="Black">
-                            <Rectangle.OpacityMask>
-                                <VisualBrush Visual="{StaticResource appbar_cupcake}" Stretch="Fill" />
-                            </Rectangle.OpacityMask>
-                        </Rectangle>
+                        <Image x:Name="Avatar_login" Grid.RowSpan="2" Grid.Row="0" Grid.Column="0" Width="75" Height="75" Margin="0,2" 
+                               Source="images/placeholder_person.gif">
+                            <!--<Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="images/placeholder_person.gif" Stretch="Fill" />
+                            </Rectangle.OpacityMask>-->
+                        </Image>
                         <TextBox Style="{StaticResource TextBoxStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"  PreviewTextInput="RestrictNumber"
 							Controls:TextboxHelper.SelectAllOnFocus="True" MaxLength="11" x:Name="QQ" />
                         <PasswordBox Style="{StaticResource PasswordBoxStyle}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalContentAlignment="Center"
@@ -206,8 +207,33 @@
                                    UseSnapBackScrolling="False"/>
             </TabItem>
             <TabItem Header="会话" Visibility="Hidden" x:Name="Recent_tab">
-                <Grid Margin="10" Loaded="Grid_Loaded" >
-                    <!--DataContext="{Binding Source={StaticResource Recent}}">-->
+                <Grid Margin="10" Loaded="Grid_Loaded" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TabControl x:Name="RecentList_tab" ItemsSource="{Binding RecentItems}"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding name}" />
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                        <TabControl.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                    <RichTextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                                        <FlowDocument>
+                                            <Paragraph>
+                                                This is a richTextBox. I can<Bold>Bold</Bold>,<Italic>Italicize</Italic> ,
+                                                <Hyperlink>Hyperlink stuff</Hyperlink> right in my document.
+                                            </Paragraph>
+                                        </FlowDocument>
+                                    </RichTextBox>
+                                    <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="50" Text="{Binding uin}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
+                </Grid>
+                <!--  <Grid Margin="10" Loaded="Grid_Loaded" >
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition Height="80"/>
@@ -256,7 +282,7 @@
                     <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
 
                     </TextBox>
-                </Grid>
+                </Grid> -->
             </TabItem>
             <TabItem Header="群" Visibility="Hidden" x:Name="Group_tab"/>
             <TabItem Visibility="Visible" x:Name="Busying" IsEnabled="False">

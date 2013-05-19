@@ -462,6 +462,7 @@ namespace Ragnarok
             });
         }
 
+        private static List<string> msgIds = new List<string>();
         private static void poll()
         {
             var url = "http://d.web2.qq.com/channel/poll2";
@@ -488,6 +489,10 @@ namespace Ragnarok
                                             updateOnlineList(res["value"].ToString());
                                             break;
                                         case "message":
+                                            if (msgIds.IndexOf(res["value"]["msg_id"].ToString()) == -1)
+                                                msgIds.Add(res["value"]["msg_id"].ToString());
+                                            else
+                                                res["poll_type"] = "void_message";
                                             break;
                                     }
                                 }
@@ -497,13 +502,37 @@ namespace Ragnarok
                                 // disconnect
                                 break;
                         }
+
+                        MyTask.DoTask(() => { HandlePollMsg(resultObject); }, (t) => { });
                     }
                     catch (System.Exception ex)
                     {
                         MessageBox.Show(ex.Message);
                     }
                 }
-            },true,90000);
+            }, true, 90000);
+        }
+
+        private static void HandlePollMsg(dynamic results)
+        {
+            foreach (var result in results)
+            {
+                switch (result["poll_type"].ToString() as String)
+                {
+                    case "message":
+                        dynamic msg = result["value"];
+                        MainWindow.rc.add
+                        break;
+                    case "buddies_status_change":
+                        break;
+                    case "file_message":
+                        break;
+                    case "push_offfile":
+                        break;
+                    case "shake_message":
+                        break;
+                }
+            }
         }
 
         private static void finish()
@@ -675,7 +704,7 @@ namespace Ragnarok
                     else
                         buffer = wc.UploadData(url, postData);
                 }
-                else return; 
+                else return;
                 if (callback != null && async == false)
                     callback.Invoke(buffer);
             }
@@ -683,7 +712,7 @@ namespace Ragnarok
             {
                 if (e.Status == WebExceptionStatus.Timeout)
                     error_msg = "请求超时...";
-            }     
+            }
         }
 
         private static void OnGetCompleted(Object sender, DownloadDataCompletedEventArgs e)
@@ -817,6 +846,22 @@ namespace Ragnarok
         public string markname_type { get; set; }
         public string is_vip { get; set; }
         public string vip_level { get; set; }
+
+        public List<string> msg { get; set; }
+        public bool newMsg;
+        public Friend()
+        {
+            msg = new List<string>();
+            newMsg = false;
+        }
+
+        public void addMessage(string message)
+        {
+            msg.Add(message);
+            newMsg = true;
+            //MainWindow.rc.getMsg();
+        }
+
     }
 }
 
